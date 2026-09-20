@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Dětský pokoj — sestava IKEA ve 3D</title>
+<style>
+  :root {
+    --bg: #f3f1ec; --panel: #ffffff; --ink: #22252a; --muted: #6b7078; --line: #e3e0d8;
+    --accent: #2b6cb0; --ok: #2f855a; --warn: #c05621; --warn-bg: #fff4e8;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); display: flex; overflow: hidden; }
+  #stage { position: relative; flex: 1; min-width: 0; }
+  #stage canvas { display: block; }
+  #labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .dim { font-size: 11px; font-weight: 600; color: #1a4f8a; background: rgba(255,255,255,.88); padding: 1px 5px; border-radius: 8px; white-space: nowrap; border: 1px solid rgba(43,108,176,.25); }
+  .dim.note { color: #6b4a1f; border-color: rgba(107,74,31,.25); font-weight: 500; }
+  .night .dim { background: rgba(30,32,38,.85); color: #a9cdf5; border-color: rgba(169,205,245,.3); }
+  .night .dim.note { color: #e6c89a; }
+  #toolbar { position: absolute; top: 12px; left: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+  #toolbar button, .btn { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.92); color: var(--ink); cursor: pointer; }
+  #toolbar button:hover, .btn:hover { border-color: var(--accent); color: var(--accent); }
+  #hint { position: absolute; bottom: 10px; left: 12px; font-size: 12px; color: var(--muted); background: rgba(255,255,255,.8); padding: 3px 8px; border-radius: 6px; }
+  #panel { width: 340px; flex: none; background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; padding: 14px 16px 30px; }
+  #panel h1 { font-size: 16px; margin: 0 0 2px; }
+  #panel .sub { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+  details { border-top: 1px solid var(--line); padding: 8px 0 4px; }
+  summary { font-weight: 650; cursor: pointer; padding: 2px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: #444; }
+  #status li.info::before { content: "i"; color: var(--accent); font-weight: 700; left: 5px; }
+  .row select { font: inherit; font-size: 13px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; width: 100%; }
+  .row { margin: 0 0 9px; }
+  .row label { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; margin-bottom: 2px; }
+  .row .ctl { display: flex; gap: 8px; align-items: center; }
+  .row input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+  .row input[type=number] { width: 64px; font: inherit; font-size: 13px; padding: 2px 4px; border: 1px solid var(--line); border-radius: 5px; text-align: right; }
+  .unit { color: var(--muted); font-size: 12px; width: 20px; }
+  .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px; }
+  .check { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .colors { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; font-size: 13px; }
+  input[type=color] { width: 40px; height: 24px; padding: 0; border: 1px solid var(--line); border-radius: 5px; background: none; }
+  #status li { list-style: none; padding: 3px 0 3px 22px; position: relative; font-size: 13px; }
+  #status { margin: 0; padding: 0; }
+  #status li::before { position: absolute; left: 0; top: 3px; }
+  #status li.ok::before { content: "✓"; color: var(--ok); font-weight: 700; }
+  #status li.warn { background: var(--warn-bg); border-radius: 5px; color: #7b3a10; }
+  #status li.warn::before { content: "⚠"; left: 4px; }
+  #summary { font-size: 13px; width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  #summary td { padding: 2px 0; border-bottom: 1px dotted var(--line); }
+  #summary td:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  #exportBox { width: 100%; height: 190px; margin-top: 8px; font: 12px/1.4 ui-monospace, Menlo, monospace; border: 1px solid var(--line); border-radius: 6px; padding: 8px; display: none; }
+  #fatal { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; padding: 30px; text-align: center; color: #7b3a10; background: var(--warn-bg); }
+  #sheet { position: fixed; inset: 0; z-index: 20; background: rgba(20,22,27,.55); display: none; overflow-y: auto; padding: 24px 16px; }
+  #sheet.open { display: block; }
+  #sheetInner { max-width: 920px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 24px 28px 32px; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+  #sheet h2 { margin: 0 0 4px; font-size: 20px; } #sheet h3 { margin: 22px 0 6px; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: #444; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  #sheet .lead { color: var(--muted); margin: 0 0 10px; font-size: 13px; }
+  #sheet table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  #sheet td { padding: 5px 6px; border-bottom: 1px solid #f0ede6; vertical-align: top; }
+  #sheet td.cb { width: 24px; } #sheet td.qty { width: 74px; font-weight: 650; white-space: nowrap; } #sheet td.what { width: 38%; font-weight: 550; } #sheet td.note { color: #555; }
+  #sheet tr.done td:not(.cb) { opacity: .45; text-decoration: line-through; }
+  #sheet .flag { background: var(--warn-bg); border-radius: 8px; padding: 8px 12px; margin: 6px 0; font-size: 13px; color: #5f3210; }
+  #sheet .flag b { color: #7b3a10; }
+  #sheet ol { margin: 6px 0 0 18px; padding: 0; font-size: 13px; } #sheet ol li { margin: 3px 0; }
+  #sheetBar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 10px 0 4px; font-size: 13px; }
+  #sheetBar select { font: inherit; font-size: 13px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; }
+  #sheet svg { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 8px; background: #fff; margin: 6px 0 4px; }
+  #sheet svg text { font: 10px -apple-system, "Segoe UI", Roboto, sans-serif; fill: #333; }
+  #sheet svg .o { fill: #fff; stroke: #222; stroke-width: 1.2; } #sheet svg .f { fill: #f3f0e8; stroke: #222; stroke-width: 1; } #sheet svg .wood { fill: #ead5ab; stroke: #222; stroke-width: 1.2; }
+  #sheet svg .thin { stroke: #8a8a8a; stroke-width: .6; fill: none; } #sheet svg .dash { stroke: #666; stroke-width: .9; stroke-dasharray: 5 4; fill: none; } #sheet svg .hatch { fill: url(#hatch); stroke: #555; stroke-width: .8; }
+  #sheet svg .dim { stroke: #1a4f8a; stroke-width: .8; fill: none; } #sheet svg .dt { fill: #1a4f8a; font-weight: 600; } #sheet svg .lbl { font-size: 9px; fill: #555; } #sheet svg .big { font-size: 11px; font-weight: 650; fill: #222; }
+  #sheet svg .x { stroke: #c0392b; stroke-width: 1.4; fill: none; } #sheet svg .led { stroke: #e0a526; stroke-width: 3; } #sheet svg .wire { stroke: #2f855a; stroke-width: 1.6; fill: none; } #sheet svg .box { fill: #eef4fb; stroke: #1a4f8a; stroke-width: 1; }
+  #sheet .legend { font-size: 12px; color: #555; margin: 2px 0 0; }
+  @media print { #sheet h3 { break-after: avoid; } #sheet svg { break-inside: avoid; } }
+  #toolbar button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  @media print { body { display: block; overflow: visible; background: #fff; } #stage, #panel, #sheetBar .btn { display: none !important; }
+    #sheet { position: static; display: block; background: none; padding: 0; } #sheetInner { box-shadow: none; max-width: none; padding: 0; } #sheet .flag { border: 1px solid #e0c5a8; } }
+  @media (max-width: 820px) { body { flex-direction: column; overflow: auto; } #stage { height: 60vh; flex: none; } #panel { width: 100%; border-left: 0; border-top: 1px solid var(--line); } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="stage">
+  <div id="labels"></div>
+  <div id="toolbar">
+    <button data-view="3d">3D pohled</button>
+    <button data-view="front">Zepředu</button>
+    <button data-view="top">Shora</button>
+    <button data-view="detail">Detail stolu</button>
+    <button data-view="corner">Pravý roh</button>
+    <button class="primary" id="btnSheet">Materiál a nářadí</button>
+    <button class="primary" id="btnDrawing">Výkres montáže</button>
+  </div>
+  <div id="hint">Tažení = otáčení · pravé tlačítko / dva prsty = posun · kolečko = zoom</div>
+  <div id="fatal"></div>
+</div>
+<aside id="panel">
+  <h1>Dětský pokoj — sestava</h1>
+  <div class="sub">Kallax s vložkami · Trofast · dubová deska · Lack · Skådis · Flisat · Ytberg · Nödmast · Kvistbro · Lersta. Rozměry v cm.</div>
+  <details open><summary>Kontrola a rozměry</summary>
+    <table id="summary"></table>
+    <ul id="status"></ul>
+  </details>
+  <details open><summary>Varianty pravého rohu</summary>
+    <div class="actions" id="presets" style="margin:0 0 6px"></div>
+    <div class="sub" id="presetNote" style="margin:0"></div>
+  </details>
+  <div id="controls"></div>
+  <details open><summary>Nastavení</summary>
+    <div class="sub" style="margin:0">Změny se ukládají v tomto prohlížeči.</div>
+    <div class="actions">
+      <button class="btn" id="btnReset">Reset na plánek</button>
+      <button class="btn" id="btnExport">Export rozměrů</button>
+    </div>
+    <textarea id="exportBox" readonly></textarea>
+  </details>
+</aside>
+
+<div id="sheet"><div id="sheetInner"></div></div>
+
+<script type="module">
+const fatal = msg => { const f = document.getElementById('fatal'); f.style.display = 'flex'; f.innerHTML = msg; };
+let THREE, OrbitControls, CSS2DRenderer, CSS2DObject, RectAreaLightUniformsLib;
+try {
+  THREE = await import('three');
+  ({ OrbitControls } = await import('three/addons/controls/OrbitControls.js'));
+  ({ CSS2DRenderer, CSS2DObject } = await import('three/addons/renderers/CSS2DRenderer.js'));
+  ({ RectAreaLightUniformsLib } = await import('three/addons/lights/RectAreaLightUniformsLib.js'));
+} catch (e) {
+  fatal('<div><b>Nepodařilo se načíst 3D knihovnu (Three.js).</b><br>Vizualizace ji stahuje z internetu — zkontroluj připojení a obnov stránku.</div>');
+  throw e;
+}
+
+/* ───────── Katalogové rozměry IKEA (cm), ověřeno na ikea.cz 19. 9. 2026 ───────── */
+const K2 = 76.5, K1 = 41.5, KH = 146.5, KD = 39;          // Kallax 2×4 / 1×4
+const T3 = 99, T1 = 34, TH = 56, TD = 44;                  // Trofast 99×44×56 / 34×44×56
+const LACK = { w: 110, d: 26, h: 5 };                      // Lack nástěnná police
+const SK = { w: 36, h: 56 };                               // Skådis 36×56
+const FL = { w: 70, d: 9, h: 16 };                         // Flisat nástěnný úložný díl
+const KV = { r: 22, h: 42 };                               // Kvistbro stolek s úložným prostorem ⌀44
+const LE = { r: 12.75, h: 131, shade: 15.5 };              // Lersta stojací lampa
+const BAG = { r: 16.5, h: 50 };                            // Next Natural Biscuit Laundry Bag 33×33×50
+const KW = { 0: 0, 1: K1, 2: K2 };
+
+const DEF = {
+  wallLen: 430, leftOffset: 90, gapWall: 1, kL: 2, kR: 1,
+  doorW: 88, doorOpen: 100, radDepth: 9, radZ: 28, radW: 60,
+  kvX: 398, kvZ: 90, lampX: 408, lampZ: 54, bagX: 73, bagZ: 18, lampOn: false,
+  deskLen: 208, deskDepth: 46, deskThick: 2.8,
+  skadisN: 3, skadisGap: 2, lackY: 118.5,
+  flX: 14, fl1Y: 95, fl2Y: 125,
+  ledOn: true, ledK: 3000, ledI: 1, night: false,
+  showTrofast3: true, showTrofast1: true, showDesk: true, showKvistbro: true, showLamp: true, showBag: true,
+  showLack: true, showSkadis: true, showFlisat: true, showChair: true, showDecor: true, showRoom: true, showDims: true,
+  colShallow: '#fafafa', colDeep: '#c4c8cc', colSmall: '#fafafa',
+  showAcc: true, ytbergOn: true, nodmastOn: true,
+};
+const STORE = 'detsky-pokoj-sestava-v7';
+let S = { ...DEF };
+try { Object.assign(S, JSON.parse(localStorage.getItem(STORE) || '{}')); } catch (e) {}
+const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} };
+const fmt = n => (+(+n).toFixed(1)).toString().replace('.', ',');
+
+/* ───────── Rozvržení — jediné místo, kde se počítají pozice ───────── */
+function layout(s) {
+  const wL = KW[s.kL], wR = KW[s.kR], zF = s.gapWall;
+  const x0 = s.leftOffset, xDesk = x0 + wL, xDeskEnd = xDesk + s.deskLen;
+  const xT1 = xDeskEnd - T1, chairGap = s.deskLen - T3 - T1, xEnd = xDeskEnd + wR;
+  const deskTop = TH + s.deskThick;
+  const skW = s.skadisN * SK.w, lackX = xDeskEnd - LACK.w;
+  const skX = skW <= LACK.w ? lackX + (LACK.w - skW) / 2 : xDeskEnd - skW;
+  const skY = deskTop + s.skadisGap;
+  // půdorysy nábytku (x1–x2, od zdi po z2) + hloubka zóny, kterou potřebuješ volnou pro přístup
+  const rects = [];
+  if (wL) rects.push({ n: 'Kallaxem vlevo', x1: x0, x2: xDesk, z2: zF + KD, acc: 30 });
+  rects.push({ n: 'velkým Trofastem', x1: xDesk, x2: xDesk + T3, z2: zF + TD, acc: 35 });
+  rects.push({ n: 'místem na židli', x1: xDesk + T3, x2: xT1, z2: s.deskDepth, acc: 55 });
+  rects.push({ n: 'malým Trofastem', x1: xT1, x2: xDeskEnd, z2: zF + TD, acc: 35 });
+  if (wR) rects.push({ n: 'Kallaxem vpravo', x1: xDeskEnd, x2: xEnd, z2: zF + KD, acc: 30 });
+  const items = [];
+  if (s.showKvistbro) items.push({ n: 'Kvistbro', x: s.kvX, z: s.kvZ, r: KV.r });
+  if (s.showLamp) items.push({ n: 'Lampa', x: s.lampX, z: s.lampZ, r: LE.r });
+  if (s.showBag) items.push({ n: 'Koš na prádlo', x: s.bagX, z: s.bagZ, r: BAG.r });
+  const lastDepth = wR ? zF + KD : Math.max(s.deskDepth, zF + TD);
+  const rightFree = s.wallLen - xEnd, radClear = rightFree - (s.radZ < lastDepth ? s.radDepth : 0);
+  return { wL, wR, x0, xDesk, xDeskEnd, xT1, chairGap, xEnd, deskTop, skW, skX, skY, skTop: skY + SK.h,
+    lackX, flX: xDesk + s.flX, total: xEnd - x0, rightFree, radClear, rects, items,
+    overhang: s.deskDepth - s.gapWall - TD };
+}
+// Na kolik stupňů se dveře otevřou (90 = naplno, křídlo leží na naší stěně), než o něco zavadí
+function doorLimit(s, L) {
+  for (let open = 0; open <= 90; open += .5) {
+    const phi = (90 - open) * Math.PI / 180;
+    for (let r = 6; r <= s.doorW; r += 2) {
+      const px = r * Math.cos(phi), pz = r * Math.sin(phi);
+      for (const it of L.items) if (Math.hypot(px - it.x, pz - it.z) < it.r + 2.5) return { deg: Math.max(0, open - .5), by: it.n.toLowerCase() };
+      for (const q of L.rects) if (q.n !== 'místem na židli' && px > q.x1 + .5 && px < q.x2 && pz < q.z2 + 2.5) return { deg: Math.max(0, open - .5), by: 'nábytek' };
+    }
+  }
+  return { deg: 90, by: null };
+}
+
+/* ───────── Scéna ───────── */
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace;
+stage.prepend(renderer.domElement);
+const labelRenderer = new CSS2DRenderer({ element: document.getElementById('labels') });
+RectAreaLightUniformsLib.init();
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, 1, 5, 5000);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.maxPolarAngle = Math.PI / 2 - 0.02; controls.minDistance = 60; controls.maxDistance = 1400;
+
+const hemi = new THREE.HemisphereLight(0xffffff, 0xb9a98f, 1);
+const sun = new THREE.DirectionalLight(0xfff4e2, 1);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.6;
+Object.assign(sun.shadow.camera, { left: -340, right: 340, top: 320, bottom: -120, near: 10, far: 1400 });
+scene.add(hemi, sun, sun.target);
+
+/* ───────── Textury (generované, žádné externí obrázky) ───────── */
+function woodTexture(base, dark, light, seed) {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const g = c.getContext('2d');
+  let r = seed; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+  g.fillStyle = base; g.fillRect(0, 0, 1024, 256);
+  for (let i = 0; i < 420; i++) {
+    const y = rnd() * 256, len = 120 + rnd() * 700, x = rnd() * 1024 - 100;
+    g.strokeStyle = rnd() > 0.5 ? dark : light; g.globalAlpha = 0.05 + rnd() * 0.16; g.lineWidth = 0.5 + rnd() * 2.2;
+    g.beginPath(); g.moveTo(x, y); g.bezierCurveTo(x + len / 3, y + (rnd() - .5) * 7, x + 2 * len / 3, y + (rnd() - .5) * 7, x + len, y + (rnd() - .5) * 5); g.stroke();
+  }
+  g.globalAlpha = 1;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t;
+}
+function skadisTexture() {
+  const px = 10, c = document.createElement('canvas'); c.width = SK.w * px; c.height = SK.h * px; const g = c.getContext('2d');
+  g.fillStyle = '#f6f6f4'; g.fillRect(0, 0, c.width, c.height); g.fillStyle = '#8f9499';
+  for (let row = 0, y = 2.2; y < SK.h - 3; y += 2, row++)
+    for (let x = (row % 2 ? 4 : 2); x < SK.w - 1.5; x += 4) { g.beginPath(); g.roundRect((x - .25) * px, y * px, .5 * px, 1.5 * px, .25 * px); g.fill(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+const texOak = woodTexture('#d8bc93', '#9c7a4c', '#ecd9b8', 7);
+const texPine = woodTexture('#e6cfa3', '#c19a5b', '#f3e3c2', 23);
+const texFloor = woodTexture('#b9946a', '#7d5c3a', '#d1b088', 41); texFloor.repeat.set(3, 8);
+const texSkadis = skadisTexture();
+function wireTexture() {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 256; const g = c.getContext('2d');
+  g.strokeStyle = '#111'; g.lineWidth = 5; g.lineCap = 'round';
+  for (let i = -8; i < 14; i++) { const a = i * 51.2;
+    g.beginPath(); g.moveTo(a, 0); g.lineTo(a + 153.6, 256); g.stroke();
+    g.beginPath(); g.moveTo(a + 153.6, 0); g.lineTo(a, 256); g.stroke(); }
+  g.lineWidth = 9; for (const y of [4, 252]) { g.beginPath(); g.moveTo(0, y); g.lineTo(512, y); g.stroke(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.anisotropy = 8; return t;
+}
+const texWire = wireTexture();
+function rattanTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  g.fillStyle = '#b98d4f'; g.fillRect(0, 0, 256, 256);
+  for (let row = 0; row < 32; row++) for (let col = -1; col < 9; col++) {
+    const x = col * 32 + (row % 2 ? 16 : 0), y = row * 8;
+    g.fillStyle = ['#d6ad6c', '#c99c58', '#dcb677'][(row + col + 9) % 3]; g.beginPath(); g.roundRect(x + 1, y + 1, 30, 6, 3); g.fill();
+    g.fillStyle = 'rgba(90,60,20,.35)'; g.fillRect(x + 29, y, 3, 8);
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t;
+}
+function artTexture(kind) {
+  const c = document.createElement('canvas'), g = c.getContext('2d'); c.width = 256; c.height = kind === 'rug' ? 256 : 340;
+  const W = c.width, H = c.height; g.lineCap = 'round'; g.lineJoin = 'round';
+  if (kind === 'house') {
+    g.fillStyle = '#fffdf8'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = '#6db3e8'; g.lineWidth = 7; for (let i = 0; i < 9; i++) { g.beginPath(); g.moveTo(10 + i * 8, 20 + i * 9); g.lineTo(150 + i * 4, 14 + i * 9); g.stroke(); }
+    g.fillStyle = '#f6c32c'; g.beginPath(); g.arc(205, 60, 28, 0, 7); g.fill(); g.strokeStyle = '#f6c32c'; g.lineWidth = 5;
+    for (let a = 0; a < 10; a++) { g.beginPath(); g.moveTo(205 + Math.cos(a * .63) * 34, 60 + Math.sin(a * .63) * 34); g.lineTo(205 + Math.cos(a * .63) * 48, 60 + Math.sin(a * .63) * 48); g.stroke(); }
+    g.fillStyle = '#d9534f'; g.fillRect(60, 170, 120, 100); g.fillStyle = '#8a5a3b'; g.beginPath(); g.moveTo(45, 172); g.lineTo(120, 105); g.lineTo(195, 172); g.fill();
+    g.fillStyle = '#fff3c4'; g.fillRect(78, 190, 32, 32); g.fillStyle = '#5a3d2b'; g.fillRect(132, 205, 30, 65);
+    g.strokeStyle = '#4f9d4a'; g.lineWidth = 8; for (let i = 0; i < 26; i++) { g.beginPath(); g.moveTo(8 + i * 9.5, 325); g.lineTo(12 + i * 9.5, 280 + (i % 3) * 8); g.stroke(); }
+  } else if (kind === 'rainbow') {
+    g.fillStyle = '#fdfbf5'; g.fillRect(0, 0, W, H);
+    ['#d9534f', '#e58b3a', '#f6c32c', '#5b8c5a', '#3d7ea6', '#8e6bb0'].forEach((col, i) => { g.strokeStyle = col; g.lineWidth = 13; g.beginPath(); g.arc(128, 215, 108 - i * 15, Math.PI, 0); g.stroke(); });
+    g.fillStyle = '#dfe9f2'; for (const [x, y] of [[40, 222], [66, 214], [92, 224], [170, 224], [196, 213], [222, 222]]) { g.beginPath(); g.arc(x, y, 22, 0, 7); g.fill(); }
+    g.strokeStyle = '#c94f7c'; g.lineWidth = 6; g.beginPath(); g.moveTo(60, 290); g.bezierCurveTo(90, 270, 110, 310, 140, 288); g.bezierCurveTo(165, 272, 180, 305, 200, 290); g.stroke();
+  } else if (kind === 'poster') {
+    g.fillStyle = '#f3eadb'; g.fillRect(0, 0, W, H); g.fillStyle = '#d98a5f'; g.beginPath(); g.arc(168, 120, 46, 0, 7); g.fill();
+    [['#b9c7a8', 215], ['#7fa39a', 245], ['#3f6b73', 280]].forEach(([col, y], i) => { g.fillStyle = col; g.beginPath(); g.moveTo(0, H); g.lineTo(0, y);
+      g.bezierCurveTo(60, y - 60 + i * 12, 110, y + 25, 160, y - 28); g.bezierCurveTo(200, y - 55, 230, y + 5, W, y - 18); g.lineTo(W, H); g.fill(); });
+  } else { // rug
+    [['#e9e2d3', 128], ['#b9c7b0', 112], ['#e9e2d3', 96], ['#d9b9a0', 70], ['#e9e2d3', 54], ['#b9c7b0', 26]].forEach(([col, r]) => { g.fillStyle = col; g.beginPath(); g.arc(128, 128, r, 0, 7); g.fill(); });
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+const texRattan = rattanTexture(), ART = { house: artTexture('house'), rainbow: artTexture('rainbow'), poster: artTexture('poster'), rug: artTexture('rug') };
+const PAL = ['#d9534f', '#3d7ea6', '#e0a526', '#5b8c5a', '#8e6bb0', '#e58b3a', '#2f4858', '#f2e3c6', '#c94f7c', '#6fb3b8'].map(c => new THREE.MeshStandardMaterial({ color: c, roughness: .8 }));
+const rng = seed => { let r = seed * 7919 + 13; return () => (r = (r * 16807) % 2147483647) / 2147483647; };
+
+const M = {
+  white: new THREE.MeshStandardMaterial({ color: 0xf5f4f0, roughness: .55 }),
+  lack: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .25 }),
+  oak: new THREE.MeshStandardMaterial({ map: texOak, roughness: .6 }),
+  pine: new THREE.MeshStandardMaterial({ map: texPine, roughness: .7 }),
+  wall: new THREE.MeshStandardMaterial({ color: 0xcfd6cf, roughness: .95 }),
+  floor: new THREE.MeshStandardMaterial({ map: texFloor, roughness: .75 }),
+  base: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .5 }),
+  skadis: new THREE.MeshStandardMaterial({ map: texSkadis, roughness: .7 }),
+  radiator: new THREE.MeshStandardMaterial({ color: 0xe9e9e6, roughness: .4, metalness: .1 }),
+  black: new THREE.MeshStandardMaterial({ color: 0x17181a, roughness: .45 }),
+  rattan: new THREE.MeshStandardMaterial({ map: texRattan, roughness: .85 }),
+  dark: new THREE.MeshStandardMaterial({ color: 0x3a2a18, roughness: .9 }),
+  drawer: new THREE.MeshStandardMaterial({ color: 0xa6c3c2, roughness: .5 }),
+  meshW: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .6, transparent: true, opacity: .55, side: THREE.DoubleSide, depthWrite: false }),
+  paper: new THREE.MeshStandardMaterial({ color: 0xfffdf6, roughness: .9 }),
+  plush: new THREE.MeshStandardMaterial({ color: 0xb98b5e, roughness: 1 }),
+  plushG: new THREE.MeshStandardMaterial({ color: 0xcfc8be, roughness: 1 }),
+  cream: new THREE.MeshStandardMaterial({ color: 0xf1e4cc, roughness: 1 }),
+  leaf: new THREE.MeshStandardMaterial({ color: 0x4f8a52, roughness: .8 }),
+  terra: new THREE.MeshStandardMaterial({ color: 0xc9805a, roughness: .85 }),
+  globe: new THREE.MeshStandardMaterial({ color: 0x3f88c5, roughness: .4 }),
+  brass: new THREE.MeshStandardMaterial({ color: 0xc9a24b, roughness: .35, metalness: .5 }),
+  nodBase: new THREE.MeshStandardMaterial({ color: 0x6d8985, roughness: .5 }),
+  nodShade: new THREE.MeshStandardMaterial({ color: 0xf4c6cf, roughness: .35, side: THREE.DoubleSide }),
+  rug: new THREE.MeshStandardMaterial({ map: ART.rug, roughness: 1 }),
+  wire: new THREE.MeshStandardMaterial({ map: texWire, transparent: true, alphaTest: .35, side: THREE.DoubleSide, roughness: .5 }),
+  alu: new THREE.MeshStandardMaterial({ color: 0xc4c8cc, roughness: .32, metalness: .35, side: THREE.DoubleSide }),
+  pink: new THREE.MeshStandardMaterial({ color: 0xe6b8b4, roughness: .9 }),
+  bag: new THREE.MeshStandardMaterial({ color: 0xdcc7a2, roughness: .95 }),
+  bagDark: new THREE.MeshStandardMaterial({ color: 0xb89466, roughness: .9 }),
+  door: new THREE.MeshStandardMaterial({ color: 0xf2f0ea, roughness: .5 }),
+  hall: new THREE.MeshBasicMaterial({ color: 0x5b5f66 }),
+  zone: new THREE.MeshBasicMaterial({ color: 0xc05621, transparent: true, opacity: .13, depthWrite: false }),
+  dimLine: new THREE.LineBasicMaterial({ color: 0x2b6cb0 }),
+};
+
+/* ───────── Stavebnice ───────── */
+let root = null;
+const disposable = [];
+function box(parent, w, h, d, x, y, z, mat, shadow = true) { // x,y,z = roh s nejmenšími souřadnicemi
+  const geo = new THREE.BoxGeometry(w, h, d); disposable.push(geo);
+  const m = new THREE.Mesh(geo, mat); m.position.set(x + w / 2, y + h / 2, z + d / 2);
+  m.castShadow = shadow; m.receiveShadow = true; parent.add(m); return m;
+}
+function tmpMat(opts) { const m = new THREE.MeshStandardMaterial(opts); disposable.push(m); return m; }
+
+const KCFG = { // odspodu nahoru, podle finální konfigurace z IKEA plánovače
+  2: [['basket', 'basket'], ['drawers', 'drawers'], ['shelf', 'open'], ['open', 'shelf']],
+  1: [['basket'], ['drawers'], ['shelf'], ['open']] };
+function kallax(parent, cols, x, z) {
+  const W = cols === 2 ? K2 : K1, t = 3.8, ti = 1.6, g = new THREE.Group(); g.position.set(x, 0, z); parent.add(g);
+  box(g, t, KH, KD, 0, 0, 0, M.white); box(g, t, KH, KD, W - t, 0, 0, M.white);
+  box(g, W - 2 * t, t, KD, t, 0, 0, M.white); box(g, W - 2 * t, t, KD, t, KH - t, 0, M.white);
+  const cell = (KH - 2 * t - 3 * ti) / 4, cw = (W - 2 * t - (cols - 1) * ti) / cols;
+  for (let k = 1; k <= 3; k++) box(g, W - 2 * t, ti, KD - .5, t, t + k * cell + (k - 1) * ti, .25, M.white);
+  if (cols === 2) box(g, ti, KH - 2 * t, KD - .8, (W - ti) / 2, t, .4, M.white);
+  KCFG[cols].forEach((row, r) => row.forEach((type, c) => {
+    const cx = t + c * (cw + ti), cy = t + r * (cell + ti), key = `${cols}${r}${c}`, zf = KD - 5;
+    if (type === 'basket') { box(g, cw - 1.6, cell - 2, 34, cx + .8, cy, KD - 35, M.rattan); box(g, 10, 2.6, .3, cx + cw / 2 - 5, cy + cell - 8, KD - 1.05, M.dark, false); }
+    else if (type === 'drawers') for (let i = 0; i < 2; i++) { const h = (cell - .4) / 2, y = cy + i * (h + .4);
+      box(g, cw - 2, h - 2, 32, cx + 1, y + .5, KD - 34, M.white); box(g, cw - .5, h - 3.4, 1.6, cx + .25, y, KD - 1.8, M.drawer);
+      box(g, cw * .55, 3.2, 1.6, cx + .25, y + h - 3.5, KD - 1.8, M.drawer); box(g, cw * .16, 1.7, 1.6, cx + .25 + cw * .55, y + h - 3.5, KD - 1.8, M.drawer); }
+    else {
+      const halves = type === 'shelf' ? [[cy, cell / 2 - .6], [cy + cell / 2 + .6, cell / 2 - .6]] : [[cy, cell]];
+      if (type === 'shelf') { box(g, cw - 1.6, 1.2, 36, cx + .8, cy + cell / 2 - .6, 1.5, M.white);
+        for (const sx of [0, cw - .8]) box(g, .8, cell, 36, cx + sx, cy, 1.5, M.white); }
+      if (S.showDecor) halves.forEach(([y, h], i) => cellDecor(g, key + i, cx + 1.5, y, cw - 3, h, zf));
+    }
+  }));
+}
+// co je v které přihrádce (klíč = sloupce · řada · sloupec · polovina)
+function cellDecor(g, key, x, y, w, h, zf) {
+  const R = { '2300': () => { plush(g, x + 9, y, zf - 9, 1.25, M.plush); plant(g, x + 23, y, zf - 10, 1, M.white); },
+    '2310': () => booksStack(g, x + 1, y, zf, 4, 3), '2311': () => { booksRow(g, x, y, zf, w * .62, h, 5); plush(g, x + w - 5, y, zf - 7, .55, M.plushG); },
+    '2200': () => gamesStack(g, x + 1, y, zf, 11), '2201': () => booksRow(g, x, y, zf, w, h, 8),
+    '2210': () => { booksRow(g, x, y, zf, w * .58, h * .9, 21); globe(g, x + w - 8, y, zf - 9); },
+    '1300': () => { frame(g, x + 1, y, zf - 14, 15, 20, ART.rainbow); plant(g, x + w - 7, y, zf - 8, .9, M.terra); },
+    '1200': () => booksStack(g, x + 2, y, zf, 3, 31), '1201': () => { booksRow(g, x, y, zf, w * .5, h, 17); plush(g, x + w - 6, y, zf - 7, .6, M.plush); } }[key];
+  if (R) R();
+}
+function trofast(parent, cols, x, z, boxes) {
+  const W = cols === 3 ? T3 : T1, t = 1.8, g = new THREE.Group(); g.position.set(x, 0, z); parent.add(g);
+  const inner = (W - (cols + 1) * t) / cols;
+  for (let k = 0; k <= cols; k++) box(g, t, TH - t, TD, k * (inner + t), 0, 0, M.white);
+  box(g, W, t, TD, 0, TH - t, 0, M.white);
+  box(g, W - 2 * t, 5, 1.6, t, 0, TD - 3, M.white); box(g, W - 2 * t, 5, 1.6, t, 0, 1.5, M.white);
+  const rails = [52.5, 36, 19.5];
+  for (let c = 0; c < cols; c++) for (const b of boxes) {
+    const h = b.deep ? 23 : 10, top = rails[b.slot], bx = t + c * (inner + t), mat = tmpMat({ color: b.color, roughness: .45 });
+    box(g, inner - 3, h - 1.2, 40, bx + 1.5, top - h, 2.5, mat);
+    box(g, inner - .6, 1.2, 42, bx + .3, top - 1.2, 1.5, mat);
+    for (const sx of [0, 1]) box(g, 1.2, .6, 42, bx + (sx ? inner - 1.2 : 0), top - 1.9, 1, M.white, false); // lišty
+  }
+}
+function flisat(parent, x, y, decor) {
+  const g = new THREE.Group(); g.position.set(x, y, 0); parent.add(g);
+  box(g, FL.w, FL.h, 1.2, 0, 0, 0, M.pine); box(g, FL.w, 1.5, FL.d, 0, 0, 0, M.pine);
+  box(g, 1.5, FL.h, FL.d, 0, 0, 0, M.pine); box(g, 1.5, FL.h, FL.d, FL.w - 1.5, 0, 0, M.pine);
+  box(g, FL.w - 3, 3, 1, 1.5, 7, FL.d - 1, M.pine);
+  if (decor) [['#d9534f', 17, 22], ['#3d7ea6', 19, 20], ['#e0a526', 16, 23]].forEach(([c, w, h], i) => {
+    const b = box(g, w, h, 1.4, 5 + i * 21.5, 1.6, 3.2, tmpMat({ color: c, roughness: .8 })); b.rotation.x = -0.14;
+  });
+}
+function chair(parent, cx, z) { // rostoucí židle: sedák 39 cm + opěrka nohou 13 cm (pro dítě ~102 cm u desky ~59 cm)
+  const g = new THREE.Group(); g.position.set(cx - 16, 0, z); parent.add(g); const m = tmpMat({ color: 0xe9d7b5, roughness: .7 }), SH = 39;
+  box(g, 32, 2.5, 30, 0, SH - 2.5, 0, m);
+  for (const [lx, lz] of [[1, 1], [28.5, 1], [1, 27], [28.5, 27]]) box(g, 2.5, lz > 10 ? SH + 30 : SH - 2.5, 2.5, lx, 0, lz, m);
+  box(g, 32, 11, 1.8, 0, SH + 17, 27.5, m); box(g, 27, 2, 12, 2.5, 11, -2, m);
+  for (const lx of [1, 28.5]) box(g, 2.5, 2.5, 27, lx, 8, 2, m, false);
+}
+function cyl(parent, rTop, rBot, h, x, y, z, mat, open = false, shadow = true) { // y = spodní hrana
+  const geo = new THREE.CylinderGeometry(rTop, rBot, h, 40, 1, open); disposable.push(geo);
+  const m = new THREE.Mesh(geo, mat); m.position.set(x, y + h / 2, z); m.castShadow = shadow; m.receiveShadow = true; parent.add(m); return m;
+}
+function kvistbro(parent, x, z) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); parent.add(g);
+  cyl(g, KV.r, KV.r, 1.6, 0, KV.h - 1.6, 0, M.black);
+  cyl(g, KV.r - .8, 17, KV.h - 2, 0, 0, 0, M.wire, true);
+  cyl(g, 17, 17, .8, 0, 0, 0, M.black);
+  const geo = new THREE.SphereGeometry(15.5, 24, 16); disposable.push(geo);
+  const c = new THREE.Mesh(geo, M.pink); c.scale.y = .55; c.position.y = 10; g.add(c);
+}
+function lersta(parent, x, z, on, tx, tz) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); parent.add(g);
+  cyl(g, LE.r, LE.r, 2.2, 0, 0, 0, M.alu); cyl(g, .8, .8, 120, 0, 2, 0, M.alu);
+  const head = new THREE.Group(); head.position.set(0, 123, 0); head.rotation.y = Math.atan2(tz - z, -(tx - x)); g.add(head);
+  const tilt = new THREE.Group(); tilt.rotation.z = -.95; head.add(tilt); // ústí stínidla míří šikmo dolů k cíli
+  cyl(tilt, 2.6, 3.2, 7, 0, -1, 0, M.alu); cyl(tilt, 3.4, LE.shade / 2, 13, 0, -14, 0, M.alu, true);
+  if (on) {
+    const geo = new THREE.SphereGeometry(3, 16, 12); disposable.push(geo);
+    const bulb = new THREE.Mesh(geo, tmpMat({ color: 0xffffff, emissive: 0xffe2b0, emissiveIntensity: 3 })); bulb.position.y = -10; tilt.add(bulb);
+    const sp = new THREE.SpotLight(0xffe2b0, 60000, 0, .75, .6, 2); sp.position.set(x, 118, z); sp.target.position.set(tx, 0, tz); parent.add(sp, sp.target);
+  }
+}
+function laundryBag(parent, x, z) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); parent.add(g);
+  cyl(g, BAG.r, BAG.r - 1, BAG.h - 3, 0, 0, 0, M.bag); cyl(g, BAG.r + .2, BAG.r + .2, 4, 0, BAG.h - 5, 0, M.bagDark);
+  cyl(g, BAG.r - 1.5, BAG.r - .5, 1.5, 0, BAG.h - 1.5, 0, M.bag);
+  for (const sx of [-1, 1]) { const geo = new THREE.TorusGeometry(4.5, .8, 8, 20, Math.PI); disposable.push(geo);
+    const h = new THREE.Mesh(geo, M.bagDark); h.position.set(sx * (BAG.r + .3), BAG.h - 9, 0); h.rotation.y = Math.PI / 2; h.rotation.z = Math.PI; g.add(h); }
+}
+function sph(parent, r, x, y, z, mat, sy = 1, sx = 1) {
+  const geo = new THREE.SphereGeometry(r, 20, 14); disposable.push(geo);
+  const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.scale.set(sx, sy, sx); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m;
+}
+function plane(parent, w, h, x, y, z, mat) { const geo = new THREE.PlaneGeometry(w, h); disposable.push(geo); const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.receiveShadow = true; parent.add(m); return m; }
+const artMat = tex => tmpMat({ map: tex, roughness: .9 });
+function booksRow(g, x, y, zf, width, maxH, seed) {
+  const R = rng(seed); let off = 0;
+  for (;;) { const th = 1.6 + R() * 2.2; if (off + th > width) break; const h = maxH * (.62 + R() * .34), d = 16 + R() * 7;
+    box(g, th, h, d, x + off, y, zf - d, PAL[Math.floor(R() * PAL.length)]); off += th + .15; }
+}
+function booksStack(g, x, y, zf, n, seed) { const R = rng(seed); let yy = y;
+  for (let i = 0; i < n; i++) { const w = 19 + R() * 6, h = 1.6 + R() * 1.6, d = 14 + R() * 4; box(g, w, h, d, x + R() * 3, yy, zf - d - R() * 2, PAL[Math.floor(R() * PAL.length)]); yy += h; } }
+function gamesStack(g, x, y, zf, seed) { const R = rng(seed); let yy = y;
+  for (let i = 0; i < 3; i++) { const w = 27 - i * 2.5, h = 4 + R() * 1.2; box(g, w, h, 24 - i * 2, x + i * 1.2, yy, zf - 25 + i, PAL[Math.floor(R() * PAL.length)]); yy += h; } }
+function plush(g, x, y, z, k, mat) {
+  sph(g, 5.5 * k, x, y + 5.6 * k, z, mat, 1.12); sph(g, 4.3 * k, x, y + 13.4 * k, z + .4 * k, mat);
+  for (const sx of [-1, 1]) { sph(g, 1.6 * k, x + sx * 3.2 * k, y + 17 * k, z, mat); sph(g, 1.9 * k, x + sx * 5.3 * k, y + 7.6 * k, z + 1.6 * k, mat);
+    sph(g, 2.2 * k, x + sx * 3.1 * k, y + 2 * k, z + 4.2 * k, mat); sph(g, .5 * k, x + sx * 1.6 * k, y + 14.4 * k, z + 4.1 * k, M.black); }
+  sph(g, 1.9 * k, x, y + 12.4 * k, z + 3.7 * k, M.cream); sph(g, .6 * k, x, y + 13 * k, z + 5.5 * k, M.black);
+}
+function plant(g, x, y, z, k, pot) { cyl(g, 4.2 * k, 3.3 * k, 7 * k, x, y, z, pot);
+  for (let i = 0; i < 9; i++) { const a = i * 2.4, r = (i % 3 ? 3.4 : 1.2) * k; sph(g, 2.6 * k, x + Math.cos(a) * r, y + (8.5 + (i % 4) * 2.1) * k, z + Math.sin(a) * r, M.leaf, 1.7); } }
+function globe(g, x, y, z) { cyl(g, 4, 4.5, 1, x, y, z, M.dark); cyl(g, .5, .5, 3.5, x, y + 1, z, M.brass); sph(g, 6.5, x, y + 10.5, z, M.globe);
+  const geo = new THREE.TorusGeometry(7.1, .35, 8, 32, Math.PI); disposable.push(geo); const t = new THREE.Mesh(geo, M.brass); t.position.set(x, y + 10.5, z); t.rotation.set(0, Math.PI / 2, -Math.PI / 2 + .4); g.add(t); }
+function frame(g, x, y, z, w, h, tex, tilt = -.12) { const f = new THREE.Group(); f.position.set(x, y, z); f.rotation.x = tilt; g.add(f);
+  box(f, w, h, 1.2, 0, 0, 0, M.white); plane(f, w - 2.4, h - 2.4, w / 2, h / 2, 1.25, artMat(tex)); }
+function ytberg(parent, x, zEdge, on) { // upevněný nahoře na Kallaxu, rameno přes přední hranu, svítí dolů na čelo
+  box(parent, 6.8, 2, 9, x - 3.4, KH, zEdge - 10, M.lack);
+  const pts = [[0, 1.5, -4], [0, 8, 1], [0, 10.5, 9], [0, 8, 17]].map(p => new THREE.Vector3(x, KH + p[1], zEdge + p[2]));
+  const geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 20, .55, 8); disposable.push(geo);
+  const arm = new THREE.Mesh(geo, M.lack); arm.castShadow = true; parent.add(arm);
+  const head = cyl(parent, 3.4, 3.4, 1.8, x, KH + 6, zEdge + 19, M.lack); head.rotation.x = -.5;
+  if (on) { const d = cyl(parent, 2.8, 2.8, .3, x, KH + 5.75, zEdge + 18.5, tmpMat({ color: 0xffffff, emissive: 0xfff0d0, emissiveIntensity: 2.5 }), false, false); d.rotation.x = -.5;
+    const sp = new THREE.SpotLight(0xffeccc, 16000, 260, .8, .75, 2); sp.position.set(x, KH + 5, zEdge + 18); sp.target.position.set(x, 40, zEdge - 6); parent.add(sp, sp.target); }
+}
+function nodmast(parent, x, y, z, on) {
+  cyl(parent, 4.6, 4.6, 9.5, x, y, z, M.nodBase); cyl(parent, 1, 1, 8, x, y + 9.5, z, M.brass);
+  const geo = new THREE.SphereGeometry(9, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2); disposable.push(geo);
+  const dome = new THREE.Mesh(geo, M.nodShade); dome.position.set(x, y + 17, z); dome.castShadow = true; parent.add(dome);
+  if (on) { cyl(parent, 5, 5, .4, x, y + 17.3, z, tmpMat({ color: 0xffffff, emissive: 0xffd9a8, emissiveIntensity: 2.2 }), false, false);
+    const pl = new THREE.PointLight(0xffd9a8, 5500, 150, 2); pl.position.set(x, y + 15.5, z); parent.add(pl); }
+}
+function trummis(parent, x, y, z, decor) { // 10 × 25 × 30, vysoká záda u zdi
+  box(parent, 10, 30, .8, x, y, z, M.rattan); box(parent, 10, 14, .8, x, y, z + 24.2, M.rattan); box(parent, 10, .8, 25, x, y, z, M.rattan);
+  const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(25, 0); sh.lineTo(25, 14); sh.lineTo(0, 30); sh.closePath();
+  for (const sx of [.8, 10]) { const geo = new THREE.ExtrudeGeometry(sh, { depth: .8, bevelEnabled: false }); disposable.push(geo);
+    const m = new THREE.Mesh(geo, M.rattan); m.rotation.y = -Math.PI / 2; m.position.set(x + sx, y, z); m.castShadow = true; parent.add(m); }
+  if (decor) [[2, 27, 1], [3.6, 29, 4], [5.4, 26, 0], [7, 28, 8]].forEach(([dx, h, c]) => box(parent, 1.1, h, 20, x + dx, y + 1, z + 1.5, PAL[c]));
+}
+function skadisStuff(parent, s, L) {
+  const z0 = 1.75, panels = s.skadisN >= 3 ? ['A', 'B', 'C'] : ['A', 'C'];
+  const basket = (w, d, h, x, y) => { box(parent, w, h, d, x, y, z0, M.meshW, false); box(parent, w + .5, 1, d + .5, x - .25, y + h - 1, z0, M.white, false); };
+  const clip = (x, y) => box(parent, 2.4, 9, 1.4, x - 1.2, y, z0 + .5, M.lack);
+  const sheet = (w, h, x, y, tex, rot) => { const b = plane(parent, w + .8, h + .8, x + w / 2, y + h / 2, z0 + .4, M.dark); b.rotation.z = rot;
+    const m = plane(parent, w, h, x + w / 2, y + h / 2, z0 + .47, tmpMat({ map: tex, color: 0xf4ecd8, roughness: .9 })); m.rotation.z = rot; };
+  panels.forEach((pn, i) => { const x = L.skX + i * SK.w, y = L.skY;
+    if (pn === 'A') { basket(24, 8, 21, x + 6, y + 5); [[2, 25, 1], [3.4, 23, 5], [5, 26, 3]].forEach(([dz, h, c]) => box(parent, 20, h, 1, x + 8, y + 6, z0 + dz, PAL[c]));
+      sheet(14.8, 21, x + 10.5, y + 29, ART.rainbow, .05); clip(x + 18, y + 45); }
+    if (pn === 'B') { sheet(21, 29.7, x + 7.5, y + 13, ART.house, -.04); clip(x + 18, y + 38); }
+    if (pn === 'C') { basket(12, 7, 13, x + 4, y + 6); for (let k = 0; k < 7; k++) cyl(parent, .4, .4, 15 + (k % 3) * 1.8, x + 6 + k * 1.3, y + 7, z0 + 2.5 + (k % 2) * 2, PAL[k], false, false);
+      basket(12, 6, 5, x + 20, y + 6); box(parent, 4, 2, 2.5, x + 22, y + 6.5, z0 + 1.5, PAL[8]); box(parent, 3, 1.6, 3, x + 27, y + 6.5, z0 + 1.5, PAL[9]);
+      for (let k = 0; k < 5; k++) { const h = cyl(parent, .95, .95, 3, x + 5 + k * 6.5, y + 44, z0 + 1.5, M.lack, false, false); h.rotation.x = Math.PI / 2; }
+      const geo = new THREE.TorusGeometry(6.2, .7, 8, 24, Math.PI); disposable.push(geo); const hp = new THREE.Mesh(geo, PAL[9]); hp.position.set(x + 11.5, y + 38.5, z0 + 3); parent.add(hp);
+      for (const sx of [-1, 1]) { const e = cyl(parent, 2.9, 2.9, 2.2, x + 11.5 + sx * 6.2, y + 35.5, z0 + 3, PAL[6], false, false); e.rotation.z = Math.PI / 2; }
+      box(parent, 11, 13, 1.6, x + 19, y + 24, z0 + 1.2, M.bag); for (const sx of [0, 1]) { const st = box(parent, .5, 8.5, .4, x + 21.5 + sx * 5.5, y + 36, z0 + 1.6, M.bagDark, false); st.rotation.z = sx ? .33 : -.33; } }
+  });
+}
+function accessories(parent, s, L, zF) {
+  const tops = []; if (L.wL) for (let c = 0; c < s.kL; c++) tops.push(L.x0 + L.wL * (c + .5) / s.kL); if (L.wR) for (let c = 0; c < s.kR; c++) tops.push(L.xDeskEnd + L.wR * (c + .5) / s.kR);
+  tops.forEach(x => ytberg(parent, x, zF + KD, s.ytbergOn));
+  if (s.showDesk) nodmast(parent, L.xDesk + 15, L.deskTop, 27, s.nodmastOn);
+  if (s.showLack) trummis(parent, L.lackX + 4, s.lackY + LACK.h, .6, s.showDecor);
+  if (s.showSkadis) skadisStuff(parent, s, L);
+}
+function styling(parent, s, L, zF) {
+  if (s.showLack) { const y = s.lackY + LACK.h, x = L.lackX;
+    plant(parent, x + 27, y, 12, 1.15, M.white); frame(parent, x + 40, y, 3, 20, 26, ART.house, -.1); booksRow(parent, x + 64, y, 21, 14, 22, 44);
+    box(parent, 3, 12, 12, x + 78.2, y, 6, M.dark); cyl(parent, 2.3, 2.3, 9, x + 90, y, 13, M.lack); const n = cyl(parent, 0, 2.3, 4.5, x + 90, y + 9, 13, PAL[0]);
+    for (const a of [0, 2.1, 4.2]) box(parent, .5, 3.5, 2.6, x + 90 + Math.cos(a) * 2.2 - .25, y, 13 + Math.sin(a) * 2.2 - 1.3, PAL[0], false);
+    plush(parent, x + 102, y, 12, .7, M.plushG); }
+  if (s.showDesk) { const y = L.deskTop, xc = L.xDesk + T3 + L.chairGap / 2;
+    const sk = new THREE.Group(); sk.position.set(xc - 4, y, 24); sk.rotation.y = .18; parent.add(sk);
+    box(sk, 30, .8, 21, -15, 0, -10.5, M.paper); const dr = plane(sk, 27, 19, 0, .85, 0, artMat(ART.rainbow)); dr.rotation.x = -Math.PI / 2;
+    [[-24, 30, .5, 0], [-22, 33, 1.1, 4], [-25, 35, -.4, 2], [19, 34, .9, 8]].forEach(([dx, z, r, c]) => { const k = cyl(parent, .45, .45, 9, xc + dx, y, z, PAL[c], false, false); k.rotation.set(Math.PI / 2, 0, r); k.position.y = y + .45; });
+    cyl(parent, 3.6, 3.2, 9.5, L.xDesk + 33, y, 12, PAL[9]); for (let k = 0; k < 7; k++) { const pc = cyl(parent, .4, .4, 16, L.xDesk + 31.2 + (k % 4) * 1.2, y + 1, 10.8 + (k % 3) * 1.2, PAL[(k * 3) % 10], false, false); pc.rotation.z = (k - 3) * .04; }
+    booksStack(parent, L.xDesk + 46, y, 24, 3, 9);
+    box(parent, 22, 11, 9, L.xT1 + 6, y, 5, M.lack); [[2, 14, 1], [6, 16, 7], [10, 13, 3], [15, 15, 5]].forEach(([dx, h, c]) => box(parent, 3, h, 7, L.xT1 + 7 + dx, y + 1, 6, PAL[c])); }
+  if (L.wL === K2) { box(parent, 34, 17, 26, L.x0 + 36, KH, zF + 3, M.bag); box(parent, 35, 2.5, 27, L.x0 + 35.5, KH + 17, zF + 2.5, M.bagDark); plush(parent, L.x0 + 17, KH, zF + 16, 1, M.plushG); }
+  const rug = new THREE.Mesh(new THREE.CircleGeometry(75, 48), M.rug); disposable.push(rug.geometry);
+  rug.rotation.x = -Math.PI / 2; rug.position.set(L.xDesk + T3 + L.chairGap / 2 - 25, .35, s.deskDepth + 95); rug.receiveShadow = true; parent.add(rug);
+  frame(parent, L.lackX + 33, 172, .3, 44, 56, ART.poster, 0);
+}
+function dim(parent, a, b, text, tick, cls = '') {
+  const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), T = new THREE.Vector3(...tick).multiplyScalar(3);
+  const pts = [A, B, A.clone().sub(T), A.clone().add(T), B.clone().sub(T), B.clone().add(T)];
+  const geo = new THREE.BufferGeometry().setFromPoints(pts); geo.setIndex([0, 1, 2, 3, 4, 5]); disposable.push(geo);
+  parent.add(new THREE.LineSegments(geo, M.dimLine));
+  label(parent, A.clone().lerp(B, .5), text, cls);
+}
+function label(parent, pos, text, cls = '') {
+  const el = document.createElement('div'); el.className = 'dim ' + cls; el.textContent = text;
+  const o = new CSS2DObject(el); o.position.copy(pos); parent.add(o);
+}
+function kelvin(k) {
+  const t = k / 100; let r, g, b;
+  if (t <= 66) { r = 255; g = 99.47 * Math.log(t) - 161.12; b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04; }
+  else { r = 329.7 * Math.pow(t - 60, -0.1332); g = 288.12 * Math.pow(t - 60, -0.0755); b = 255; }
+  const c = v => Math.min(255, Math.max(0, v)) / 255; return new THREE.Color().setRGB(c(r), c(g), c(b), THREE.SRGBColorSpace);
+}
+
+/* ───────── Sestavení celé scény ze stavu ───────── */
+function build() {
+  if (root) scene.remove(root);
+  disposable.splice(0).forEach(d => d.dispose());
+  labelRenderer.domElement.innerHTML = '';
+  root = new THREE.Group(); scene.add(root);
+  const s = S, L = layout(s), zF = s.gapWall; // zF = kde začíná nábytek (za lištou)
+  const WH = 250, RD = 700;
+
+  // místnost
+  const wall = box(root, s.wallLen, WH, 2, 0, 0, -2, M.wall, false);
+  texFloor.repeat.set(s.wallLen / 150, 18);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(s.wallLen, RD), M.floor); disposable.push(floor.geometry);
+  floor.rotation.x = -Math.PI / 2; floor.position.set(s.wallLen / 2, 0, RD / 2); floor.receiveShadow = true; root.add(floor);
+  for (const [x, ry] of [[0, Math.PI / 2], [s.wallLen, -Math.PI / 2]]) { // boční stěny viditelné jen zevnitř
+    const sw = new THREE.Mesh(new THREE.PlaneGeometry(RD, WH), M.wall); disposable.push(sw.geometry);
+    sw.rotation.y = ry; sw.position.set(x, WH / 2, RD / 2); sw.receiveShadow = true; root.add(sw);
+  }
+  box(root, s.wallLen, 7, s.gapWall, 0, 0, 0, M.base, false); // podlahová lišta
+
+  const door = doorLimit(s, L), openDeg = Math.min(s.doorOpen / 100 * 90, door.deg);
+  if (s.showRoom) {
+    // dveře: závěsy v levém rohu, zavřené leží v levé stěně, naplno otevřené na naší stěně
+    const hall = new THREE.Mesh(new THREE.PlaneGeometry(s.doorW, 202), M.hall); disposable.push(hall.geometry);
+    hall.rotation.y = Math.PI / 2; hall.position.set(.3, 101, s.doorW / 2 + 1); root.add(hall);
+    const dg = new THREE.Group(); dg.rotation.y = -(90 - openDeg) * Math.PI / 180; root.add(dg);
+    box(dg, s.doorW, 200, 4, 0, 0, .6, M.door); box(dg, 12, 2, 5, s.doorW - 16, 100, 4.6, M.alu);
+    const zone = new THREE.Mesh(new THREE.CircleGeometry(s.doorW, 40, -Math.PI / 2, Math.PI / 2), M.zone); disposable.push(zone.geometry);
+    zone.rotation.x = -Math.PI / 2; zone.position.set(0, .3, 0); root.add(zone);
+    if (s.showDims) label(root, new THREE.Vector3(s.doorW * .45, 1, s.doorW * .45), `dveře ${fmt(openDeg)}°`, 'note');
+    // sálavý panel na pravé (vedlejší) stěně
+    box(root, s.radDepth, 160, s.radW, s.wallLen - s.radDepth, 15, s.radZ, M.lack);
+    if (s.showDims) label(root, new THREE.Vector3(s.wallLen - s.radDepth - 1, 185, s.radZ + s.radW / 2), `topení (hl. ${fmt(s.radDepth)})`, 'note');
+  }
+  if (s.showKvistbro) { kvistbro(root, s.kvX, s.kvZ); if (s.showDims) label(root, new THREE.Vector3(s.kvX, KV.h + 8, s.kvZ), 'Kvistbro ⌀44', 'note'); }
+  if (s.showLamp) { lersta(root, s.lampX, s.lampZ, s.lampOn, L.xDesk + T3 + L.chairGap / 2, s.deskDepth + 40); if (s.showDims) label(root, new THREE.Vector3(s.lampX, LE.h + 6, s.lampZ), 'Lersta 131', 'note'); }
+  if (s.showBag) { laundryBag(root, s.bagX, s.bagZ); if (s.showDims) label(root, new THREE.Vector3(s.bagX, BAG.h + 8, s.bagZ), 'koš na prádlo ⌀33', 'note'); }
+
+  // nábytek
+  if (L.wL) kallax(root, s.kL, L.x0, zF);
+  if (L.wR) kallax(root, s.kR, L.xDeskEnd, zF);
+  if (s.showTrofast3) trofast(root, 3, L.xDesk, zF, [{ slot: 0, color: s.colShallow }, { slot: 1, deep: true, color: s.colDeep }]);
+  if (s.showTrofast1) trofast(root, 1, L.xT1, zF, [0, 1, 2].map(slot => ({ slot, color: s.colSmall })));
+  if (s.showDesk) { texOak.repeat.set(s.deskLen / 120, 1); box(root, s.deskLen, s.deskThick, s.deskDepth, L.xDesk, TH, 0, M.oak); }
+  if (s.showChair && L.chairGap > 32) chair(root, L.xDesk + T3 + L.chairGap / 2, s.deskDepth - 14);
+
+  if (s.showSkadis) for (let i = 0; i < s.skadisN; i++) {
+    box(root, SK.w - .4, SK.h, .5, L.skX + i * SK.w + .2, L.skY, 1.2, M.white);
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(SK.w - .4, SK.h), M.skadis); disposable.push(p.geometry);
+    p.position.set(L.skX + i * SK.w + SK.w / 2, L.skY + SK.h / 2, 1.72); p.receiveShadow = true; root.add(p);
+  }
+  if (s.showLack) {
+    box(root, LACK.w, LACK.h, LACK.d, L.lackX, s.lackY, 0, M.lack);
+    const col = kelvin(s.ledK), on = s.ledOn;
+    const ledMat = tmpMat({ color: 0xffffff, emissive: col, emissiveIntensity: on ? 2.5 * s.ledI : 0 }); // Mittled 60 + 40
+    box(root, 59.6, 1.4, 2, L.lackX + 5, s.lackY - 1.4, LACK.d - 7, ledMat, false); box(root, 39.6, 1.4, 2, L.lackX + 65.2, s.lackY - 1.4, LACK.d - 7, ledMat, false);
+    if (on) {
+      const led = new THREE.RectAreaLight(col, 14 * s.ledI, LACK.w - 10, 3);
+      led.position.set(L.lackX + LACK.w / 2, s.lackY - 1, LACK.d - 6.3); led.lookAt(L.lackX + LACK.w / 2, 0, LACK.d - 12); root.add(led);
+    }
+  }
+  if (s.showFlisat) { flisat(root, L.flX, s.fl1Y, s.showDecor); flisat(root, L.flX, s.fl2Y, s.showDecor); }
+  if (s.showAcc) accessories(root, s, L, zF);
+  if (s.showDecor) styling(root, s, L, zF);
+
+  // kóty
+  if (s.showDims) {
+    const zD = Math.max(s.deskDepth, TD) + 28, y = .4, tz = [0, 0, 1], tx = [1, 0, 0];
+    const segs = [[0, L.x0, 'dveře ' + fmt(L.x0)], [L.x0, L.xDesk, 'Kallax ' + fmt(L.wL)], [L.xDesk, L.xDesk + T3, 'Trofast ' + fmt(T3)],
+      [L.xDesk + T3, L.xT1, 'židle ' + fmt(L.chairGap)], [L.xT1, L.xDeskEnd, fmt(T1)], [L.xDeskEnd, L.xEnd, fmt(L.wR)], [L.xEnd, s.wallLen, fmt(L.rightFree)]];
+    for (const [a, b, t] of segs) if (b - a > 1) dim(root, [a, y, zD], [b, y, zD], t, tz);
+    dim(root, [L.x0, y, zD + 38], [L.xEnd, y, zD + 38], 'sestava celkem ' + fmt(L.total), tz);
+    dim(root, [0, y, zD + 76], [s.wallLen, y, zD + 76], 'stěna ' + fmt(s.wallLen), tz);
+    if (s.showDesk) dim(root, [L.xDesk, L.deskTop + .3, s.deskDepth + 1.5], [L.xDeskEnd, L.deskTop + .3, s.deskDepth + 1.5], `deska ${fmt(s.deskLen)} × ${fmt(s.deskDepth)}`, [0, 1, 0]);
+    const xg = L.xDesk + T3 + Math.max(6, L.chairGap * .18);
+    dim(root, [xg, 0, s.deskDepth + 1.5], [xg, L.deskTop, s.deskDepth + 1.5], 'výška ' + fmt(L.deskTop), tx);
+    if (L.wR) dim(root, [L.xEnd + 5, 0, zF + KD], [L.xEnd + 5, KH, zF + KD], fmt(KH), tx);
+    else if (L.wL) dim(root, [L.x0 - 5, 0, zF + KD], [L.x0 - 5, KH, zF + KD], fmt(KH), tx);
+    if (s.showLack) {
+      dim(root, [L.lackX, s.lackY + LACK.h + 5, LACK.d], [L.xDeskEnd, s.lackY + LACK.h + 5, LACK.d], 'Lack ' + fmt(LACK.w), [0, 1, 0]);
+      dim(root, [L.lackX - 5, L.deskTop, LACK.d], [L.lackX - 5, s.lackY, LACK.d], fmt(s.lackY - L.deskTop), tx);
+    }
+    if (s.showFlisat) dim(root, [L.flX, s.fl2Y + FL.h + 12, FL.d], [L.flX + FL.w, s.fl2Y + FL.h + 12, FL.d], 'Flisat ' + fmt(FL.w), [0, 1, 0]);
+  }
+
+  // světlo a nálada
+  const n = s.night;
+  scene.background = new THREE.Color(n ? 0x14161b : 0xe9ecef);
+  hemi.intensity = n ? .22 : 1.05; sun.intensity = n ? .04 : 2.0;
+  renderer.toneMappingExposure = n ? 1.1 : .8;
+  const cx = (L.x0 + L.xEnd) / 2; sun.position.set(cx - 180, 330, 380); sun.target.position.set(cx, 40, 0);
+  document.body.classList.toggle('night', n);
+  report(L, door);
+}
+
+/* ───────── Kontroly + souhrn ───────── */
+function report(L, door) {
+  const s = S, rows = [
+    ['Sestava celkem', fmt(L.total) + ' cm'], ['Deska (řez)', `${fmt(s.deskLen)} × ${fmt(s.deskDepth)} × ${fmt(s.deskThick)} cm`],
+    ['Mezera na židli', fmt(L.chairGap) + ' cm'], ['Výška pracovní plochy', fmt(L.deskTop) + ' cm'],
+    ['Přesah desky před Trofast', fmt(L.overhang) + ' cm'], ['Vpravo ke zdi / k topení', `${fmt(L.rightFree)} / ${fmt(L.radClear)} cm`],
+    ['Dveře se otevřou na', fmt(door.deg) + '°'],
+    ['Lack — spodní hrana', fmt(s.lackY) + ' cm'], ['Pod Lackem nad deskou', fmt(s.lackY - L.deskTop) + ' cm'],
+  ];
+  document.getElementById('summary').innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+  const ch = [], add = (ok, good, bad) => ch.push(ok ? ['ok', good] : ['warn', bad]);
+  add(L.radClear >= 3, `Vejde se do stěny — vpravo ${fmt(L.rightFree)} cm, od topení ${fmt(L.radClear)} cm`,
+    L.radClear < 0 ? `Sestava se nevejde o ${fmt(-L.radClear)} cm` : `Od topení zbývá jen ${fmt(L.radClear)} cm`);
+  add(door.deg >= 88, 'Dveře se otevřou naplno', `Dveře se otevřou jen na ${fmt(door.deg)}° — brání ${door.by}`);
+  add(L.chairGap >= 55, `Mezera na židli ${fmt(L.chairGap)} cm je pohodlná`, L.chairGap < 0 ? 'Deska je kratší než oba Trofasty dohromady' : `Mezera na židli ${fmt(L.chairGap)} cm je těsná`);
+  add(L.overhang >= 0 && L.overhang <= 5, `Přesah desky ${fmt(L.overhang)} cm`, L.overhang < 0 ? `Deska je o ${fmt(-L.overhang)} cm mělčí než Trofast + lišta` : `Přesah desky ${fmt(L.overhang)} cm je velký — hrozí páčení`);
+  if (s.showLack && s.showSkadis) add(s.lackY >= L.skTop, `Skådis se vejde pod Lack (rezerva ${fmt(s.lackY - L.skTop)} cm)`, `Lack koliduje se Skådisem o ${fmt(L.skTop - s.lackY)} cm`);
+  if (s.showLack) add(s.lackY + LACK.h <= KH, 'Lack je pod horní hranou Kallaxu', 'Lack je výš než Kallax');
+  if (s.showSkadis) add(L.skX >= L.xDesk, `Skådis ${s.skadisN}× = ${fmt(L.skW)} cm`, 'Skådis je širší než deska');
+  if (s.showFlisat) {
+    const fr = L.flX + FL.w, hit = (y, x1, y1, y2) => fr > x1 && y < y2 && y + FL.h + 8 > y1; // +8 = knížky přečnívají
+    const ys = [s.fl1Y, s.fl2Y];
+    add(!(s.showLack && ys.some(y => hit(y, L.lackX, s.lackY, s.lackY + LACK.h))), 'Flisaty nekolidují s Lackem', 'Flisat zasahuje do Lacku');
+    add(!(s.showSkadis && ys.some(y => hit(y, L.skX, L.skY, L.skTop))), 'Flisaty nekolidují se Skådisem', 'Flisat zasahuje do Skådisu');
+    add(Math.abs(s.fl1Y - s.fl2Y) >= FL.h + 10, `Mezi Flisaty je ${fmt(Math.abs(s.fl2Y - s.fl1Y) - FL.h)} cm`, 'Flisaty jsou moc blízko u sebe — knížky se nevejdou');
+    add(Math.min(...ys) >= L.deskTop + 20, 'Pod spodním Flisatem je místo na práci', `Spodní Flisat je jen ${fmt(Math.min(...ys) - L.deskTop)} cm nad deskou`);
+    add(fr <= L.xDeskEnd, 'Flisaty jsou nad deskou', 'Flisat přesahuje za desku');
+  }
+  for (const it of L.items) {
+    const nearRad = it.z + it.r > s.radZ && it.z - it.r < s.radZ + s.radW, xMax = s.wallLen - (nearRad ? s.radDepth : 0);
+    const out = it.x - it.r < 0 || it.x + it.r > xMax || it.z - it.r < 0;
+    const hitR = (q, extra) => it.x + it.r > q.x1 && it.x - it.r < q.x2 && it.z - it.r < q.z2 + extra;
+    const col = L.rects.find(q => hitR(q, 0)), blk = L.rects.find(q => Math.min(it.x + it.r, q.x2) - Math.max(it.x - it.r, q.x1) > 6 && hitR(q, q.acc));
+    const other = L.items.find(o => o !== it && Math.hypot(o.x - it.x, o.z - it.z) < o.r + it.r - .5);
+    if (out) ch.push(['warn', `${it.n} zasahuje do zdi${nearRad ? ' / topení' : ''}`]);
+    else if (col) ch.push(['warn', `${it.n} koliduje s ${col.n}`]);
+    else if (other) ch.push(['warn', `${it.n} koliduje s: ${other.n.toLowerCase()}`]);
+    else if (blk) ch.push(['info', `${it.n} stojí před ${blk.n} — ${fmt(it.z - it.r - blk.z2)} cm od čela, zakrývá spodek`]);
+    else ch.push(['ok', `${it.n} má místo`]);
+  }
+  document.getElementById('status').innerHTML = ch.map(c => `<li class="${c[0]}">${c[1]}</li>`).join('');
+}
+
+function exportText() {
+  const s = S, L = layout(s), l = [];
+  l.push('SESTAVA — dětský pokoj (rozměry v cm, x měřeno od levého rohu stěny)', '');
+  l.push(`DESKA NA ŘEZ: ${fmt(s.deskLen)} × ${fmt(s.deskDepth)} cm, tl. ${fmt(s.deskThick)} — světlý dub`);
+  l.push(`  horní hrana ${fmt(L.deskTop)} cm · přesah před Trofast ${fmt(L.overhang)} cm · dorazit ke zdi`, '');
+  l.push('ZLEVA DOPRAVA:');
+  l.push(`  ${fmt(L.x0)} volno (dveře)`);
+  if (L.wL) l.push(`  Kallax ${s.kL}×4   ${fmt(L.wL)} × ${KD} × ${fmt(KH)}   x = ${fmt(L.x0)}`);
+  l.push(`  Trofast 3×   ${T3} × ${TD} × ${TH}   x = ${fmt(L.xDesk)}`, `  mezera židle ${fmt(L.chairGap)}`, `  Trofast 1×   ${T1} × ${TD} × ${TH}   x = ${fmt(L.xT1)}`);
+  if (L.wR) l.push(`  Kallax ${s.kR}×4   ${fmt(L.wR)} × ${KD} × ${fmt(KH)}   x = ${fmt(L.xDeskEnd)}`);
+  l.push(`  ${fmt(L.rightFree)} volno ke zdi (${fmt(L.radClear)} k topení)`, `  celkem sestava ${fmt(L.total)} / stěna ${fmt(s.wallLen)}`, '');
+  l.push('VOLNĚ STOJÍCÍ (střed: x od levého rohu / z od zdi):');
+  for (const it of L.items) l.push(`  ${it.n} ⌀${fmt(it.r * 2)} — x = ${fmt(it.x)}, z = ${fmt(it.z)}`);
+  l.push('');
+  l.push('NA ZDI:');
+  l.push(`  Lack 110 × 26 × 5 — spodní hrana ${fmt(s.lackY)} od podlahy (${fmt(s.lackY - L.deskTop)} nad deskou), pravý konec u Kallaxu`);
+  l.push(`  Skådis ${s.skadisN}× 36 × 56 — spodní hrana ${fmt(L.skY)} od podlahy, levý okraj x = ${fmt(L.skX)}`);
+  l.push(`  Flisat 2× 70 × 9 × 16 — levý okraj x = ${fmt(L.flX)}, spodní hrany ${fmt(s.fl1Y)} a ${fmt(s.fl2Y)} od podlahy`);
+  l.push(`  Ytberg 3× nahoře na Kallaxech (2× na 2×4, 1× na 1×4) · Nödmast na levém konci desky · Trummis na Lacku vlevo`);
+  l.push(`  Skådis doplňky: koše 24×8×21, 12×7×13, 12×6×5 · 5 háčků · svorky`);
+  l.push(`  LED pásek pod Lack — cca ${LACK.w - 10} cm, ${s.ledK} K`);
+  return l.join('\n');
+}
+
+/* ───────── Panel ───────── */
+const UI = [
+  { sec: 'Rozvržení', open: true, items: [
+    { k: 'leftOffset', label: 'Začátek sestavy od levého rohu', min: 0, max: 160, step: .5 },
+    { k: 'chairGap', label: 'Mezera na židli', min: 30, max: 120, step: .5, get: s => s.deskLen - T3 - T1, set: (s, v) => s.deskLen = v + T3 + T1 },
+    { k: 'deskLen', label: 'Délka desky', min: 163, max: 253, step: .5 },
+    { k: 'deskDepth', label: 'Hloubka desky', min: 40, max: 65, step: .5 },
+    { k: 'deskThick', label: 'Tloušťka desky', min: 1.8, max: 4, step: .1 },
+    { k: 'gapWall', label: 'Lišta — nábytek od zdi', min: 0, max: 4, step: .1 },
+    { k: 'kL', label: 'Kallax vlevo', type: 'select', options: [[2, '2×4 (76,5 cm)'], [1, '1×4 (41,5 cm)'], [0, 'žádný']] },
+    { k: 'kR', label: 'Kallax vpravo', type: 'select', options: [[1, '1×4 (41,5 cm)'], [2, '2×4 (76,5 cm)'], [0, 'žádný']] } ] },
+  { sec: 'Místnost a doplňky', open: true, items: [
+    { k: 'wallLen', label: 'Délka stěny', min: 300, max: 600, step: 1 },
+    { k: 'doorW', label: 'Dveře — šířka křídla', min: 60, max: 100, step: 1 },
+    { k: 'doorOpen', label: 'Dveře — otevření', min: 0, max: 100, step: 1, unit: '%' },
+    { k: 'radZ', label: 'Topení — od rohu', min: 0, max: 150, step: 1 },
+    { k: 'radW', label: 'Topení — šířka', min: 30, max: 120, step: 1 },
+    { k: 'radDepth', label: 'Topení — hloubka', min: 3, max: 20, step: .5 },
+    { k: 'kvX', label: 'Kvistbro — od levého rohu', min: 0, max: 600, step: 1 },
+    { k: 'kvZ', label: 'Kvistbro — od zdi', min: 0, max: 300, step: 1 },
+    { k: 'lampX', label: 'Lampa — od levého rohu', min: 0, max: 600, step: 1 },
+    { k: 'lampZ', label: 'Lampa — od zdi', min: 0, max: 300, step: 1 },
+    { k: 'bagX', label: 'Koš na prádlo — od levého rohu', min: 0, max: 600, step: 1 },
+    { k: 'bagZ', label: 'Koš na prádlo — od zdi', min: 0, max: 300, step: 1 } ] },
+  { sec: 'Nad deskou', open: true, items: [
+    { k: 'lackY', label: 'Lack — spodní hrana od podlahy', min: 90, max: 145, step: .5 },
+    { k: 'skadisN', label: 'Skådis — počet panelů', min: 2, max: 4, step: 1, unit: '×' },
+    { k: 'skadisGap', label: 'Skådis — mezera nad deskou', min: 0, max: 20, step: .5 },
+    { k: 'flX', label: 'Flisaty — od levého Kallaxu', min: 0, max: 140, step: .5 },
+    { k: 'fl1Y', label: 'Flisat dolní — výška', min: 65, max: 150, step: .5 },
+    { k: 'fl2Y', label: 'Flisat horní — výška', min: 65, max: 170, step: .5 } ] },
+  { sec: 'Světlo', open: true, items: [
+    { k: 'ledOn', label: 'LED pod Lackem', type: 'check' }, { k: 'lampOn', label: 'Lampa Lersta svítí', type: 'check' },
+    { k: 'ytbergOn', label: 'Ytberg na Kallaxech (3×)', type: 'check' }, { k: 'nodmastOn', label: 'Nödmast na stole', type: 'check' }, { k: 'night', label: 'Večerní režim', type: 'check' },
+    { k: 'ledK', label: 'Teplota světla', min: 2200, max: 6500, step: 100, unit: 'K' },
+    { k: 'ledI', label: 'Intenzita', min: .2, max: 3, step: .1, unit: '×' } ] },
+  { sec: 'Co zobrazit', items: [
+    ['showTrofast3', 'Trofast 3×'], ['showTrofast1', 'Trofast 1×'],
+    ['showDesk', 'Deska'], ['showLack', 'Lack + LED'], ['showSkadis', 'Skådis'], ['showFlisat', 'Flisaty'],
+    ['showKvistbro', 'Kvistbro'], ['showLamp', 'Lampa Lersta'], ['showBag', 'Koš na prádlo'], ['showChair', 'Židlička'], ['showAcc', 'Doplňky z košíku'], ['showDecor', 'Zařízení a dekorace'], ['showRoom', 'Dveře a topení'], ['showDims', 'Kóty'],
+  ].map(([k, label]) => ({ k, label, type: 'check' })) },
+  { sec: 'Barvy krabic', items: [
+    { k: 'colShallow', label: 'Trofast 3× — mělké', type: 'color' }, { k: 'colDeep', label: 'Trofast 3× — hluboké', type: 'color' },
+    { k: 'colSmall', label: 'Trofast 1× — mělké', type: 'color' } ] },
+];
+const refreshers = [];
+function change(it, v) { it.set ? it.set(S, v) : S[it.k] = v; save(); refreshers.forEach(f => f()); build(); }
+function makePanel() {
+  const host = document.getElementById('controls');
+  for (const sec of UI) {
+    const d = document.createElement('details'); d.open = !!sec.open; d.innerHTML = `<summary>${sec.sec}</summary>`; host.append(d);
+    const wrap = document.createElement('div'); d.append(wrap);
+    if (sec.items.every(i => i.type === 'check') && sec.items.length > 4) wrap.className = 'checks'; else if (sec.items.every(i => i.type === 'color')) wrap.className = 'colors';
+    for (const it of sec.items) {
+      const get = () => it.get ? it.get(S) : S[it.k];
+      if (it.type === 'check') {
+        const l = document.createElement('label'); l.className = 'check'; l.innerHTML = `<input type="checkbox"> ${it.label}`;
+        const i = l.firstChild; i.onchange = () => change(it, i.checked); refreshers.push(() => i.checked = get()); wrap.append(l);
+        if (wrap.className !== 'checks') l.style.marginBottom = '7px';
+      } else if (it.type === 'select') {
+        const r = document.createElement('div'); r.className = 'row'; r.innerHTML = `<label><span>${it.label}</span></label><select>${it.options.map(o => `<option value="${o[0]}">${o[1]}</option>`).join('')}</select>`;
+        const sel = r.querySelector('select'); sel.onchange = () => change(it, +sel.value); refreshers.push(() => sel.value = get()); wrap.append(r);
+      } else if (it.type === 'color') {
+        const t = document.createElement('span'); t.textContent = it.label; const i = document.createElement('input'); i.type = 'color';
+        i.oninput = () => change(it, i.value); refreshers.push(() => i.value = get()); wrap.append(t, i);
+      } else {
+        const r = document.createElement('div'); r.className = 'row';
+        r.innerHTML = `<label><span>${it.label}</span></label><div class="ctl"><input type="range" min="${it.min}" max="${it.max}" step="${it.step}"><input type="number" min="${it.min}" max="${it.max}" step="${it.step}"><span class="unit">${it.unit || 'cm'}</span></div>`;
+        const [rng, num] = r.querySelectorAll('input');
+        rng.oninput = () => change(it, +rng.value);
+        num.onchange = () => { const v = Math.min(it.max, Math.max(it.min, +num.value || it.min)); change(it, v); };
+        refreshers.push(() => { rng.value = get(); if (document.activeElement !== num) num.value = +(+get()).toFixed(1); }); wrap.append(r);
+      }
+    }
+  }
+  refreshers.forEach(f => f());
+}
+const PRESETS = [
+  { name: 'A · deska 208', note: 'Vše podle plánu. Roh vedle Kallaxu má jen 14 cm, takže lampa (podstavec 25,5) stojí před Kallaxem vedle topení a Kvistbro až před ní — trčí cca 110 cm od zdi. Kallax je 5 cm od topení.',
+    set: { deskLen: 208, kR: 1, flX: 14, lampX: 408, lampZ: 54, kvX: 398, kvZ: 90 } },
+  { name: 'B · deska 195', note: 'Deska o 13 cm kratší (židle 62 cm). Roh se rozšíří na 27 cm → lampa stojí v rohu vedle topení, Kvistbro před Kallaxem a topením. Kallax je 18 cm od topení. Pozor: lampa (131 cm) je ve výklenku za Kallaxem (146,5 cm, hloubka 40) — na stůl nedosvítí.',
+    set: { deskLen: 195, kR: 1, flX: 7.5, lampX: 416.5, lampZ: 14, kvX: 399, kvZ: 63 } },
+  { name: 'C · bez Kallaxu 1×4', note: 'Deska 208, vpravo bez Kallaxu. Roh má 55 cm → lampa v rohu, Kvistbro jako odkládací stolek vedle stolu před topením. Nic nezakrývá a lampa svítí volně na stůl.',
+    set: { deskLen: 208, kR: 0, flX: 14, lampX: 417, lampZ: 14, kvX: 399, kvZ: 50 } },
+];
+PRESETS.forEach(pr => { const b = document.createElement('button'); b.className = 'btn'; b.textContent = pr.name;
+  b.onclick = () => { Object.assign(S, pr.set); save(); refreshers.forEach(f => f()); build(); document.getElementById('presetNote').textContent = pr.note; setView('corner'); };
+  document.getElementById('presets').append(b); });
+document.getElementById('btnReset').onclick = () => { S = { ...DEF }; save(); refreshers.forEach(f => f()); build(); setView('3d'); };
+document.getElementById('btnExport').onclick = () => {
+  const b = document.getElementById('exportBox'); b.value = exportText(); b.style.display = 'block'; b.select();
+  navigator.clipboard?.writeText(b.value).catch(() => {});
+};
+
+/* ───────── Kamera ───────── */
+function setView(v) {
+  const L = layout(S), cx = S.wallLen / 2, P = { '3d': [[cx + 150, 170, 470], [cx + 10, 66, 10]], front: [[cx, 80, 640], [cx, 78, 0]],
+    top: [[cx, 720, 110.5], [cx, 0, 110]], corner: [[S.wallLen - 250, 200, 330], [S.wallLen - 50, 45, 45]], detail: [[L.xDeskEnd - 150, 125, 250], [L.xDeskEnd - 75, 92, 5]] }[v];
+  camera.position.set(...P[0]); controls.target.set(...P[1]); controls.update();
+}
+document.querySelectorAll('#toolbar button[data-view]').forEach(b => b.onclick = () => setView(b.dataset.view));
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h); labelRenderer.setSize(w, h);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage);
+
+/* ───────── Přehled materiálu a nářadí ───────── */
+const WALLS = {
+  plna: { name: 'Cihla / beton / plná zeď', fix: 'hmoždinka univerzální 6 × 30 (např. Fischer DuoPower) + vrut 4,5 × 45–50, půlkulatá hlava', drill: 'Vrták do zdi 6 mm, vrtat s příklepem (do betonu raději vrtací kladivo)', note: '' },
+  sdk: { name: 'Sádrokarton', fix: 'kovová rozevírací hmoždinka (typ Molly M5 × 50) nebo Fischer DuoTec 10 + šroub/vrut podle hmoždinky', drill: 'Vrták 8–10 mm podle hmoždinky, bez příklepu', note: 'Sádrokarton: Kallaxy kotvi do profilu (najdi magnetem / detektorem). Lack v SDK unese jen cca 3–5 kg — knížky dej jinam, nebo Lack přišroubuj do profilů.' },
+  drevo: { name: 'Dřevostavba (OSB / sádrovlákno na roštu)', fix: 'vrut 4,5 × 50 přímo do desky / sloupku, bez hmoždinek', drill: 'Předvrtat 3 mm', note: 'U dřevostavby ověř skladbu stěny — drží OSB nebo sloupek, samotné sádrovlákno 12 mm ne.' } };
+function sheetData(wall) { const L = layout(S), w = WALLS[wall], dl = fmt(S.deskLen - .3);
+  return [
+  { h: 'Dokoupit v IKEA — v objednávce z 19. 9. 2026 chybí', lead: 'Zkontrolováno proti faktuře. Všechno ostatní z návrhu v objednávce je: oba Kallaxy, 3× koš Branäs, 3× vložka s policí, 3× vložka se zásuvkami, oba rámy Trofast, 6 mělkých bílých + 3 hluboké šedé krabice, 3× Skådis 36 × 56 s háčky, svorkami a koši, 2× Flisat, 3× Ytberg, Mittled 60 + 40, trafo Dubbelkisel 30 W, kabel Förnimma, ovladač Bilresa, Trummis a Nödmast. Kvistbro a Lerstu už máš.', rows: [
+    ['✓ máš doma', 'LACK nástěnná police 110 × 26 bílá', 'Zbyla z dřívějška. Zkontroluj, že k ní máš i skrytou nosnou lištu a že není prohnutá.'],
+    ['1 ks', 'VÅGDAL propojovací kabel', 'IKEA u MITTLED uvádí: „1 propojovací kabel VÅGDAL pro každou skupinu“ pásků, aby šly připojit k trafu. V objednávce není. Než pojedeš, ověř v návodu k MITTLED, jestli kabel k trafu není v balení.'],
+    ['4 + 2 ks', 'Baterie: 4× AA (Nödmast) + 2× AAA (Bilresa), ideálně dobíjecí LADDA', 'Ani jedny nejsou v balení. K Nödmastu navíc USB-C kabel + nabíječka, pokud nemáš.'],
+    ['✓ máš', 'Thread Border Router: DIRIGERA + HomePody', 'Dubbelkisel i Bilresa jsou Matter over Thread — Dirigera i HomePod (mini / 2. generace) fungují jako Thread Border Router, nic dalšího nepotřebuješ. Nejjednodušší: trafo i ovladač přidat do aplikace IKEA Home smart (Dirigera) a Dirigeru mít propojenou s Apple Home.'] ] },
+  { h: 'Do zdi — kotvení (vruty a hmoždinky IKEA nikdy nepřibaluje)', lead: `Pro tvoji zeď: ${w.fix}. ${w.drill}.`, rows: [
+    ['4 ks', 'Kallax 2×4 a 1×4 — kotvení proti převržení', 'Kování je v balení, vruty ne. 2 body na skříň. Nábytek stojí 1 cm od zdi kvůli liště → pod kování dej distanční podložku 10 mm (viz Další materiál).'],
+    ['4 ks', 'L-profil pod zadní hranu desky', 'Rozteč cca 20 cm podle perforace profilu, krajní do 5 cm od konců.'],
+    ['6 ks', 'Lack 110 — skrytá nosná lišta', 'Lišta je v balení. Počet podle otvorů v liště; krajní otvory osaď vždy.'],
+    ['12 ks', 'Skådis 3× — po 4 bodech', 'Distanční držáky jsou v balení. Hlava vrutu max. ⌀ 8 mm, jinak nezapadne do držáku.'],
+    ['4 ks', 'Flisat 2× — po 2 bodech', ''],
+    ['≈ 30 ks', 'Celkem → kup balení 50 ks', 'Rezerva na zničené hmoždinky a na případné kotvení Trofastů.'] ] },
+  { h: 'Do dřeva', rows: [
+    ['10 ks', 'Deska ↔ Trofasty: vrut 4 × 30, půlkulatá hlava + podložka 4,3 mm', 'Šroubuje se zevnitř Trofastu nahoru (6× velký, 4× malý). Délka = tloušťka horní desky Trofastu + 15–18 mm — změř, než koupíš. Do desky 28 mm max. 20 mm hluboko.'],
+    ['4 ks', 'Deska ↔ L-profil: vrut 4 × 16, půlkulatá hlava + podložka', 'Zespodu skrz perforaci profilu do desky; podložka, pokud je otvor větší než hlava vrutu.'],
+    ['6 ks', 'Ytberg 3×: vrutek 3 × 16', 'Šroubuj do 3 cm od přední hrany Kallaxu — tam je plný rám, dál je voština a vrut v ní nedrží. Oboustranná páska podle IKEA drží jen na skle a kovu.'] ] },
+  { h: 'Další materiál', rows: [
+    ['1 ks', 'L-profil ocelový perforovaný bílý 35 × 35 × 1,5 mm, 1 m (Hornbach / Alberts, č. 6783632, 129 Kč)', 'Zkrátit na ' + fmt(L.chairGap - 1) + ' cm — profil musí celý vejít DO mezery na židli (' + fmt(L.chairGap) + ' cm), nad Trofasty se nevejde (jsou jen 1 cm od zdi a stejně vysoké). Řez pilkou na kov, konce zapilovat do oblouku a zatřít bílou barvou (obnažená ocel). Díry jsou hotové, nic se nevrtá.'],
+    ['služba', 'ABS hrana na řezané hrany desky', `Objednat rovnou u Dvornbachu s řezem. Délku zadej ${dl} cm (o 3 mm kratší než ${fmt(S.deskLen)}), ať jde deska mezi Kallaxy osadit.`],
+    ['2–4 ks', 'Distanční podložka 10 mm za kotvení Kallaxů', 'Kousek hranolku / překližky v tloušťce podlahové lišty.'],
+    ['1 ks', 'Bílý akrylový tmel', 'Spára deska–zeď, ať za desku nepadají pastelky. Akryl, ne silikon (dá se přetřít a jde dolů).'],
+    ['1 sada', 'Vyrovnávací klínky + plstěné podložky pod nábytek', 'Oba Trofasty musí být ve stejné výšce, jinak se deska kolébá.'],
+    ['≈ 3 m', 'Samolepicí kabelová lišta bílá + příchytky, stahovací pásky', 'Kabely Ytbergů dolů po boku / za Kallaxem, kabel LED pod Lackem.'],
+    ['1 ks', 'Zásuvková lišta 3–4 zásuvky s vypínačem', 'Trafo světel, Lersta, nabíječka Nödmastu.'],
+    ['volitelně', 'Dveřní zarážka', 'Dveře se jinak zastavují o koš na prádlo.'] ] },
+  { h: 'Světla — zapojení toho, co máš koupené', lead: 'Ověřeno na ikea.cz 19. 9. 2026.', rows: [
+    ['✓ koupeno', 'DUBBELKISEL trafo 30 W + FÖRNIMMA 3,5 m', 'Až 9 svítidel do 30 W. Tvoje zátěž: 3× Ytberg 4,5 W + Mittled 60 5,5 W + Mittled 40 cca 4 W ≈ 14 W — s rezervou. Rozměr trafa 20,5 × 5,5 × 1,8 cm → schovat za velký Trofast nebo pod desku.'],
+    ['ověřit', 'Jedno trafo = nejspíš jedna skupina', 'IKEA ani recenze neuvádějí, že by Dubbelkisel měl samostatně ovladatelné výstupy — popisují ho jako jedno stmívatelné světlo (stejně jako starší Trådfri). Výslovně potvrzené to ale není. Druhé trafo zatím nekupuj: po spárování uvidíš v aplikaci, jestli se trafo hlásí jako jedno světlo. Pokud ano a chceš Ytbergy a LED pod Lackem zvlášť → druhé trafo + FÖRNIMMA spojovací kabel 0,7 nebo 2 m (propojí trafa mezi sebou, stačí jedna zásuvka a jeden napájecí kabel).'],
+    ['✓ koupeno', 'MITTLED 60 + 40 = 100 cm pod Lack 110', 'Vyjde 5 cm od obou konců police. Propojení k trafu viz VÅGDAL výše.'],
+    ['✓ koupeno', 'YTBERG 3× — kabel 3,5 m', 'Trafo dej doprostřed sestavy: z obou Kallaxů to vyjde (cca 1,5 m dolů + 1–1,3 m vodorovně).'],
+    ['✓ koupeno', 'BILRESA ovladač s kolečkem', 'Baterie 2× AAA nejsou v balení (viz výše).'],
+    ['1 ks', 'Žárovka E27 LED do Lersty', 'Pokud v ní už není. Do chytré domácnosti chytrá E27.'] ] },
+  { h: 'Nářadí a vybavení', rows: [
+    ['', 'Aku vrtačka s příklepem + aku šroubovák', w.drill + '.'],
+    ['', 'Vrtáky do dřeva 2,5 / 3 / 4,5 mm', 'Trofast 4,5 mm průchozí, deska 2,5 mm předvrtat. Perforovaný L-profil má díry hotové.'],
+    ['', 'Bity PZ2 / PH2 (torx podle vrutů) + krátký ráčnový nebo úhlový šroubovák', 'Uvnitř Trofastu je na výšku jen ~50 cm, vzadu se s vrtačkou nevytočíš.'],
+    ['', 'Detektor kabelů a kovů', 'Na stěně jsou zásuvky a na vedlejší sálavý panel — vedení jde svisle nad a pod zásuvkami a vodorovně v pásu u stropu.'],
+    ['', 'Vodováha 80–100 cm nebo křížový laser, metr, úhelník, tužka, malířská páska', 'Lack 110 a tři Skådisy v řadě — každý milimetr nakřivo je vidět.'],
+    ['', 'Svěrky 2×, gumová palice, pilka na kov + pilník', 'Svěrky drží desku při šroubování; palice na kolíky Kallaxů.'],
+    ['', 'Pistole na kartuše, vysavač, ochranné brýle', 'Imbusy a klíče jsou v baleních IKEA.'] ] } ];
+}
+function sheetFlags() { const L = layout(S), door = doorLimit(S, L), f = [];
+  f.push(`<b>Délka desky závisí na variantě pravého rohu</b> (A/C = 208, B = 195). Teď je nastaveno ${fmt(S.deskLen)} cm — řezat až po rozhodnutí.`);
+  f.push('<b>Doobjednat:</b> kabel VÅGDAL k páskům Mittled, druhé trafo + spojovací FÖRNIMMA (pokud chceš dva okruhy) a baterie — viz první tabulka. Lack máš doma.');
+  f.push('<b>Světla na jednom trafu nejspíš svítí jako jedna skupina</b> (neověřeno na 100 %) — vyzkoušej po spárování, druhé trafo kup až podle toho.');
+  f.push('<b>Kde jsou zásuvky?</b> Nesmí skončit za zásuvkami nebo košem Kallaxu. Volná přihrádka nevadí (Kallax nemá záda).');
+  f.push(`<b>Pořadí nad deskou:</b> nejdřív Skådis, potom Lack podle něj — rezerva je jen ${fmt(S.lackY - L.skTop)} cm.`);
+  if (L.wR && L.radClear < 10) f.push(`<b>Kallax je ${fmt(L.radClear)} cm od sálavého panelu.</b> Výrobci obvykle chtějí ≥ 10 cm; ověř v návodu k panelu.`);
+  if (door.deg < 88) f.push(`<b>Dveře se otevřou na ${fmt(door.deg)}°</b> (brání ${door.by}).`);
+  return f;
+}
+let sheetState = {}; try { sheetState = JSON.parse(localStorage.getItem(STORE + '-sheet2') || '{}'); } catch (e) {}
+function renderSheet() {
+  const wall = sheetState.wall || 'plna', el = document.getElementById('sheetInner');
+  const secs = sheetData(wall).map((sec, si) => `<h3>${sec.h}</h3>${sec.lead ? `<p class="lead">${sec.lead}</p>` : ''}<table>${sec.rows.map((r, ri) => { const id = `c${si}_${ri}`;
+    return `<tr class="${sheetState[id] ? 'done' : ''}"><td class="cb"><input type="checkbox" data-id="${id}" ${sheetState[id] ? 'checked' : ''}></td><td class="qty">${r[0]}</td><td class="what">${r[1]}</td><td class="note">${r[2]}</td></tr>`; }).join('')}</table>`).join('');
+  el.innerHTML = `<h2>Materiál, nářadí a postup</h2><p class="lead">Počty sedí na aktuální nastavení vizualizace. Zaškrtnutí se pamatuje v tomto prohlížeči.</p>
+    <div id="sheetBar"><label>Typ zdi: <select id="wallSel">${Object.entries(WALLS).map(([k, v]) => `<option value="${k}" ${k === wall ? 'selected' : ''}>${v.name}</option>`).join('')}</select></label>
+    <button class="btn" id="sheetPrint">Vytisknout / PDF</button><button class="btn" id="sheetClose">Zavřít</button></div>
+    ${WALLS[wall].note ? `<div class="flag">${WALLS[wall].note}</div>` : ''}
+    <h3>Než začneš — co ověřit a rozhodnout</h3>${sheetFlags().map(t => `<div class="flag">${t}</div>`).join('')}
+    ${secs}
+    <h3>Detail: jak přišroubovat desku k Trofastům</h3>
+    <p class="lead">Klasický vrut do dřeva 4 × 30 (půlkulatá hlava + podložka 4,3 mm), žádný šroub s maticí. Vrtají se dvě různé díry: v Trofastu průchozí 4,5 mm (vrut jí jen proklouzne, takže hlava přitáhne díly natěsno), v desce předvrtaná 2,5 mm (závit se do ní zařeže a lamino se nevyboulí).</p>
+    <ol>
+    <li>Změř tloušťku horní desky Trofastu (cca 16 mm). Délka vrutu = tloušťka + 15–18 mm; do desky ${fmt(S.deskThick * 10)} mm nesmí jít hlouběji než 20 mm.</li>
+    <li>Trofast z výroby žádné díry nahoře nemá — <b>vyvrtáš si je sám</b>. Dokud na Trofastu neleží pracovní deska, provrtej jeho horní desku vrtákem 4,5 mm (vrtačkou seshora dolů, je to pohodlnější než zevnitř): velký Trofast 2 díry na sloupec, malý 4; vždy cca 6 cm od přední a zadní hrany a mimo boky, ať netrefíš spojovací kování. Zespodu podlož kousek dřeva, ať se fólie nevyštípne.</li>
+    <li>Polož desku, doraz ke zdi, stáhni svěrkami (nebo ať na ni někdo tlačí).</li>
+    <li>Na vrták 2,5 mm nalep praporek z malířské pásky ve vzdálenosti „tloušťka horní desky + 15 mm“ od špičky. Zevnitř Trofastu vrtej skrz díry z kroku 2 nahoru do pracovní desky, dokud se praporek nedotkne — díry vrták vedou, takže se trefíš.</li>
+    <li>Zašroubuj vruty s podložkami. Dotahuj ručně nebo na nízkou spojku — dřevotříska se snadno strhne a vrut se pak protáčí.</li>
+    </ol>
+    <p class="legend">Krabice z Trofastu vyndej, uvnitř je pak cca 30 × 50 cm místa. Alternativa bez vrtání do desky: L-profil na zdi drží desku proti posunu, na Trofasty ji jen přilepit silnou oboustrannou montážní páskou — drží, ale nejde bez poškození rozebrat.</p>
+    <h3>Doporučený postup</h3><ol>
+    <li>Rozhodnout variantu pravého rohu → objednat řez desky s ABS hranou.</li><li>Projet stěnu detektorem, označit páskou zásuvky a vedení.</li>
+    <li>Složit Kallaxy a Trofasty, postavit na místo, vyrovnat klínky (Trofasty do stejné výšky).</li><li>Ukotvit oba Kallaxy ke zdi přes distanční podložky.</li>
+    <li>Přišroubovat L-profil na zeď — horní hrana přesně ve výšce vršku Trofastů (56 cm).</li><li>Položit desku, dorazit ke zdi, svěrkami přitáhnout, přišroubovat zevnitř Trofastů a k L-profilu.</li>
+    <li>Skådis 3× (spodní hrana ${fmt(layout(S).skY)} cm od podlahy) → Lack nad něj → LED lišta pod Lack.</li><li>Flisaty (spodní hrany ${fmt(S.fl1Y)} a ${fmt(S.fl2Y)} cm), Ytbergy na Kallaxy, kabely do lišt, trafo za Trofast.</li>
+    <li>Akryl do spáry u zdi, vložky a koše do Kallaxů, doplňky na Skådis.</li></ol>`;
+  const persist = () => { try { localStorage.setItem(STORE + '-sheet2', JSON.stringify(sheetState)); } catch (e) {} };
+  el.querySelectorAll('input[type=checkbox]').forEach(c => c.onchange = () => { sheetState[c.dataset.id] = c.checked; c.closest('tr').classList.toggle('done', c.checked); persist(); });
+  el.querySelector('#wallSel').onchange = e => { sheetState.wall = e.target.value; persist(); renderSheet(); };
+  el.querySelector('#sheetPrint').onclick = () => window.print();
+  el.querySelector('#sheetClose').onclick = () => document.getElementById('sheet').classList.remove('open');
+}
+/* ───────── Montážní výkres (SVG generované z layout()) ───────── */
+function renderDrawing() {
+  const s = S, L = layout(s), door = doorLimit(s, L), W = s.wallLen, el = document.getElementById('sheetInner');
+  const defs = '<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#999" stroke-width="1"/></pattern></defs>';
+  const T = (x, y, t, cls = '', a = 'middle', rot = 0) => `<text x="${x}" y="${y}" text-anchor="${a}" class="${cls}"${rot ? ` transform="rotate(${rot} ${x} ${y})"` : ''}>${t}</text>`;
+  const LN = (x1, y1, x2, y2, cls) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${cls}"/>`;
+  const dH = (x1, x2, y, t) => LN(x1, y, x2, y, 'dim') + LN(x1, y - 4, x1, y + 4, 'dim') + LN(x2, y - 4, x2, y + 4, 'dim') + T((x1 + x2) / 2, y - 3, t, 'dt');
+  const dV = (y1, y2, x, t) => LN(x, y1, x, y2, 'dim') + LN(x - 4, y1, x + 4, y1, 'dim') + LN(x - 4, y2, x + 4, y2, 'dim') + T(x - 3, (y1 + y2) / 2, t, 'dt', 'middle', -90);
+  const cross = (x, y) => LN(x - 4, y - 4, x + 4, y + 4, 'x') + LN(x - 4, y + 4, x + 4, y - 4, 'x');
+
+  /* 1 — NÁRYS */
+  const k = 2.1, H = 215, pL = 70, pT = 24, pB = 118, pR = 112, X = x => pL + x * k, Y = y => pT + (H - y) * k, fy = Y(0);
+  const R = (x, y, w, h, cls) => `<rect x="${X(x)}" y="${Y(y + h)}" width="${w * k}" height="${h * k}" class="${cls}"/>`;
+  let a = defs + `<rect x="${X(0)}" y="${Y(H)}" width="${W * k}" height="${H * k}" fill="#fbfaf7" stroke="#bbb"/>` + LN(X(0) - 20, fy, X(W) + 20, fy, 'o');
+  a += R(0, 0, s.doorW, 200, 'dash') + T(X(s.doorW / 2), Y(100), 'dveře', 'lbl') + T(X(s.doorW / 2), Y(100) + 11, `otevřené křídlo ${fmt(s.doorW)}`, 'lbl');
+  a += R(W - s.radDepth, 15, s.radDepth, 160, 'hatch') + T(X(W) + 8, Y(178), 'sálavý panel', 'lbl', 'start') + T(X(W) + 8, Y(178) + 11, `vedlejší stěna, hl. ${fmt(s.radDepth)}`, 'lbl', 'start');
+  const kal = (x, cols) => { const w = KW[cols], t = 3.8, cell = (KH - 2 * t - 4.8) / 4, cw = (w - 2 * t - (cols - 1) * 1.6) / cols; let o = R(x, 0, w, KH, 'o');
+    KCFG[cols].forEach((row, r) => row.forEach((type, c) => { const cx = x + t + c * (cw + 1.6), cy = t + r * (cell + 1.6);
+      o += R(cx, cy, cw, cell, type === 'basket' || type === 'drawers' ? 'f' : 'thin');
+      if (type === 'shelf' || type === 'drawers') o += LN(X(cx), Y(cy + cell / 2), X(cx + cw), Y(cy + cell / 2), 'thin');
+      o += T(X(cx + cw / 2), Y(cy + cell / 2) + (type === 'open' ? 3 : -4), { basket: 'koš', drawers: 'zásuvky', shelf: 'police', open: '' }[type], 'lbl'); }));
+    for (let c = 0; c < cols; c++) { const yx = x + w * (c + .5) / cols; o += `<circle cx="${X(yx)}" cy="${Y(KH) - 7}" r="4" class="box"/>` + T(X(yx), Y(KH) - 4, 'Y', 'lbl'); }
+    for (const f of [.25, .75]) o += cross(X(x + w * f), Y(KH - 2)); return o; };
+  if (L.wL) a += kal(L.x0, s.kL); if (L.wR) a += kal(L.xDeskEnd, s.kR);
+  const tro = (x, cols) => { const w = cols === 3 ? T3 : T1, inner = (w - (cols + 1) * 1.8) / cols; let o = R(x, 0, w, TH, 'o');
+    for (let c = 0; c < cols; c++) { const bx = x + 1.8 + c * (inner + 1.8); (cols === 3 ? [[42.5, 10], [13, 23]] : [[42.5, 10], [26, 10], [9.5, 10]]).forEach(([y, h]) => o += R(bx + 1, y, inner - 2, h, 'f')); if (c) o += LN(X(bx - .9), Y(0), X(bx - .9), Y(TH), 'thin'); } return o; };
+  a += tro(L.xDesk, 3) + tro(L.xT1, 1) + R(L.xDesk, TH, s.deskLen, s.deskThick, 'wood') + T(X(L.xDesk + T3 + L.chairGap / 2), Y(TH / 2), 'místo na židli', 'lbl');
+  const lp1 = L.xDesk + T3 + .5, lp2 = L.xT1 - .5; // profil jen v mezeře na židli — nad Trofasty se nevejde a += R(lp1, 53, lp2 - lp1, 3, 'hatch') + T(X((lp1 + lp2) / 2), Y(47), `L-profil ${fmt(L.chairGap - 1)} cm, horní hrana 56`, 'lbl');
+  for (let i = 0; i < 4; i++) a += cross(X(lp1 + 5 + i * (lp2 - lp1 - 10) / 3), Y(54.5));
+  a += R(L.xDesk + 6, 2.5, 50, 8, 'dash') + T(X(L.xDesk + 31), Y(5), '2× trafo (za Trofastem)', 'lbl');
+  for (let i = 0; i < s.skadisN; i++) { const x = L.skX + i * SK.w; a += R(x, L.skY, SK.w, SK.h, 'o'); for (const [dx, dy] of [[4, 4], [SK.w - 4, 4], [4, SK.h - 4], [SK.w - 4, SK.h - 4]]) a += cross(X(x + dx), Y(L.skY + dy)); }
+  a += T(X(L.skX + L.skW / 2), Y(L.skY + SK.h / 2), `Skådis ${s.skadisN}× 36 × 56`, 'big');
+  a += R(L.lackX, s.lackY, LACK.w, LACK.h, 'wood') + LN(X(L.lackX + 5), Y(s.lackY) + 2.5, X(L.lackX + 65), Y(s.lackY) + 2.5, 'led') + LN(X(L.lackX + 65.6), Y(s.lackY) + 2.5, X(L.lackX + 105), Y(s.lackY) + 2.5, 'led');
+  for (let i = 0; i < 6; i++) a += cross(X(L.lackX + 7 + i * 19.2), Y(s.lackY + 2.5));
+  a += dH(X(L.lackX), X(L.xDeskEnd), Y(s.lackY + 16), `Lack ${fmt(LACK.w)} (od rohu ${fmt(L.lackX)})`);
+  for (const fyy of [s.fl1Y, s.fl2Y]) { a += R(L.flX, fyy, FL.w, FL.h, 'wood'); for (const dx of [10, FL.w - 10]) a += cross(X(L.flX + dx), Y(fyy + 12)); }
+  a += dH(X(L.flX), X(L.flX + FL.w), Y(s.fl2Y + FL.h + 10), `Flisat ${fmt(FL.w)} (od rohu ${fmt(L.flX)})`);
+  const bounds = [0, L.x0, L.xDesk, L.xDesk + T3, L.xT1, L.xDeskEnd, L.xEnd, W].filter((v, i, ar) => i === 0 || v - ar[i - 1] > .5);
+  for (let i = 1; i < bounds.length; i++) a += dH(X(bounds[i - 1]), X(bounds[i]), fy + 22, fmt(bounds[i] - bounds[i - 1]));
+  a += T(X(0) - 8, fy + 47, 'od rohu:', 'lbl', 'end'); bounds.forEach(b => a += T(X(b), fy + 47, fmt(b), 'dt'));
+  a += dH(X(L.x0), X(L.xEnd), fy + 72, `sestava ${fmt(L.total)}`) + dH(X(0), X(W), fy + 98, `stěna ${fmt(W)}`);
+  [[L.deskTop, 'deska'], [L.skY, 'Skådis ↓'], [s.lackY, 'Lack ↓'], [KH, 'Kallax']].forEach(([y, n], i) => a += dV(Y(y), fy, X(W) + 22 + i * 22, `${n} ${fmt(y)}`));
+  [[s.fl1Y, 'Flisat ↓'], [s.fl2Y, 'Flisat ↓']].forEach(([y, n], i) => a += dV(Y(y), fy, X(0) - 16 - i * 22, `${n} ${fmt(y)}`));
+  const front = `<svg viewBox="0 0 ${pL + W * k + pR} ${pT + H * k + pB}">${a}</svg>`;
+
+  /* 2 — PŮDORYS */
+  const D = 135, q = 2.1, PX = x => 70 + x * q, PZ = z => 26 + z * q, PR = (x, z, w, d, cls) => `<rect x="${PX(x)}" y="${PZ(z)}" width="${w * q}" height="${d * q}" class="${cls}"/>`;
+  let b = defs + `<rect x="${PX(0)}" y="${PZ(0) - 10}" width="${W * q}" height="10" class="hatch"/>` + T(PX(W / 2), PZ(0) - 14, 'stěna', 'lbl');
+  b += `<rect x="${PX(W)}" y="${PZ(0) - 10}" width="10" height="${D * q + 10}" class="hatch"/><rect x="${PX(0) - 10}" y="${PZ(s.doorW)}" width="10" height="${(D - s.doorW) * q}" class="hatch"/>`;
+  b += PR(W - s.radDepth, s.radZ, s.radDepth, s.radW, 'f') + T(PX(W) + 16, PZ(s.radZ + s.radW / 2), 'topení', 'lbl', 'start');
+  b += `<path d="M ${PX(s.doorW)} ${PZ(0)} A ${s.doorW * q} ${s.doorW * q} 0 0 1 ${PX(0)} ${PZ(s.doorW)}" class="dash"/>`;
+  const ph = (90 - door.deg) * Math.PI / 180; b += LN(PX(0), PZ(0), PX(s.doorW * Math.cos(ph)), PZ(s.doorW * Math.sin(ph)), 'o') + T(PX(30), PZ(s.doorW * .75), `dveře ${fmt(door.deg)}°`, 'lbl');
+  const zF = s.gapWall; if (L.wL) b += PR(L.x0, zF, L.wL, KD, 'o') + T(PX(L.x0 + L.wL / 2), PZ(22), 'Kallax', 'lbl'); if (L.wR) b += PR(L.xDeskEnd, zF, L.wR, KD, 'o') + T(PX(L.xDeskEnd + L.wR / 2), PZ(22), 'Kallax', 'lbl');
+  b += PR(L.xDesk, 0, s.deskLen, s.deskDepth, 'wood') + PR(L.xDesk, zF, T3, TD, 'dash') + PR(L.xT1, zF, T1, TD, 'dash') + T(PX(L.xDesk + s.deskLen / 2), PZ(38), `deska ${fmt(s.deskLen)} × ${fmt(s.deskDepth)} (Trofasty čárkovaně pod ní)`, 'lbl');
+  b += PR(L.lackX, 0, LACK.w, LACK.d, 'thin') + T(PX(L.lackX + 55), PZ(15), 'Lack', 'lbl') + PR(L.flX, 0, FL.w, FL.d, 'thin') + T(PX(L.flX + 35), PZ(18), 'Flisat 2×', 'lbl');
+  L.items.forEach(it => b += `<circle cx="${PX(it.x)}" cy="${PZ(it.z)}" r="${it.r * q}" class="o"/>` + T(PX(it.x), PZ(it.z) + 3, it.n, 'lbl'));
+  b += dV(PZ(0), PZ(zF + KD), PX(0) - 18, fmt(zF + KD)) + dV(PZ(0), PZ(s.deskDepth), PX(0) - 40, fmt(s.deskDepth)) + dV(PZ(0), PZ(s.radZ), PX(W) + 30, fmt(s.radZ));
+  b += dH(PX(L.xEnd), PX(W), PZ(D) - 8, `${fmt(L.rightFree)} ke zdi / ${fmt(L.radClear)} k topení`);
+  const plan = `<svg viewBox="0 0 ${70 + W * q + 110} ${26 + D * q + 14}">${b}</svg>`;
+
+  /* 3 — ŘEZ uchycením desky + 4 — SCHÉMA SVĚTEL */
+  const m = 5.2, SX = z => 60 + z * m, SY = y => 20 + (70 - y) * m, SR = (z, y, d, h, cls) => `<rect x="${SX(z)}" y="${SY(y + h)}" width="${d * m}" height="${h * m}" class="${cls}"/>`;
+  let c = defs + `<rect x="${SX(0) - 24}" y="${SY(70)}" width="24" height="${70 * m}" class="hatch"/>` + LN(SX(0) - 24, SY(0), SX(62), SY(0), 'o') + SR(0, 0, zF, 7, 'f');
+  c += SR(zF, 0, TD, TH, 'dash') + T(SX(zF + TD / 2), SY(28), 'Trofast (vedle řezu)', 'lbl') + SR(0, TH, s.deskDepth, s.deskThick, 'wood');
+  c += `<path d="M ${SX(0)} ${SY(TH - 3)} L ${SX(0)} ${SY(TH)} L ${SX(3)} ${SY(TH)} L ${SX(3)} ${SY(TH - .4)} L ${SX(.4)} ${SY(TH - .4)} L ${SX(.4)} ${SY(TH - 3)} Z" fill="#555"/>`;
+  c += LN(SX(0) - 12, SY(TH - 1.6), SX(.4), SY(TH - 1.6), 'x') + LN(SX(1.8), SY(TH - 2.2), SX(1.8), SY(TH + 1.6), 'x') + T(SX(5), SY(TH - 4.5), 'L-profil 35 × 35 × 1,5 na zdi', 'big', 'start') + T(SX(5), SY(TH - 7.5), 'do zdi 4× vrut + hmoždinka, do desky 4× vrut 4 × 16', 'lbl', 'start');
+  for (const z of [zF + 6, zF + TD - 6]) c += LN(SX(z), SY(TH - 3), SX(z), SY(TH + 1.7), 'x'); c += T(SX(zF + TD / 2), SY(TH - 14), 'zevnitř Trofastu: vruty 4 × 30 + podložka', 'big') + T(SX(zF + TD / 2), SY(TH - 17), '(do desky max. 20 mm hluboko)', 'lbl');
+  c += dH(SX(0), SX(s.deskDepth), SY(TH + s.deskThick) - 12, `deska ${fmt(s.deskDepth)}`) + dH(SX(0), SX(zF), SY(0) + 16, fmt(zF)) + dH(SX(zF), SX(zF + TD), SY(0) + 16, fmt(TD)) + dH(SX(zF + TD), SX(s.deskDepth), SY(0) + 34, `přesah ${fmt(L.overhang)}`);
+  c += dV(SY(TH), SY(0), SX(s.deskDepth) + 76, fmt(TH)) + dV(SY(L.deskTop), SY(0), SX(s.deskDepth) + 98, fmt(L.deskTop));
+  const sect = `<svg viewBox="0 0 ${SX(s.deskDepth) + 120} ${SY(0) + 46}" style="max-width:560px">${c}</svg>`;
+  const BX = (x, y, w, t1, t2) => `<rect x="${x}" y="${y}" width="${w}" height="34" rx="5" class="box"/>` + T(x + w / 2, y + 15, t1, 'big') + T(x + w / 2, y + 27, t2 || '', 'lbl');
+  let e = BX(10, 50, 70, 'zásuvka', '230 V') + LN(80, 67, 170, 67, 'wire') + T(125, 61, 'Förnimma 3,5 m', 'lbl') + BX(170, 50, 120, 'TRAFO 1', 'Dubbelkisel 30 W') + LN(290, 60, 380, 22, 'wire') + LN(290, 67, 380, 67, 'wire') + LN(290, 74, 380, 112, 'wire');
+  ['Ytberg — Kallax 2×4 vlevo', 'Ytberg — Kallax 2×4 vpravo', 'Ytberg — Kallax 1×4'].forEach((t, i) => e += BX(380, 5 + i * 45, 190, t, 'vlastní kabel 3,5 m · 1,5 W'));
+  e += LN(230, 84, 230, 160, 'wire') + T(236, 126, 'Förnimma spojovací 2 m (jen napájení)', 'lbl', 'start') + BX(170, 160, 120, 'TRAFO 2', 'Dubbelkisel 30 W') + LN(290, 177, 380, 177, 'wire') + T(335, 171, 'Vågdal 3,5 m', 'lbl') + BX(380, 160, 190, 'Mittled 60 + 40 pod Lackem', 'spojené za sebou · cca 9,5 W');
+  e += BX(620, 50, 150, 'Dirigera / HomePod', 'Thread Border Router') + BX(620, 160, 150, 'Bilresa', 'ovladač, 2× AAA') + LN(695, 160, 695, 84, 'dash') + T(700, 118, 'Thread — bezdrátově', 'lbl', 'start') + T(700, 131, 'ovládá TRAFO 1 i TRAFO 2', 'lbl', 'start');
+  const wiring = `<svg viewBox="0 0 850 205">${e}</svg>`;
+
+  const rows = [];
+  if (L.wL) rows.push([`Kallax ${s.kL}×4 — kotvení`, `${fmt(L.x0 + L.wL * .25)} a ${fmt(L.x0 + L.wL * .75)}`, '≈ 144', 'kování z balení + distanční podložka 10 mm']);
+  if (L.wR) rows.push([`Kallax ${s.kR}×4 — kotvení`, `${fmt(L.xDeskEnd + L.wR * .25)} a ${fmt(L.xDeskEnd + L.wR * .75)}`, '≈ 144', 'stejně']);
+  rows.push(['L-profil pod desku', `${fmt(lp1)} – ${fmt(lp2)}`, 'horní hrana 56,0', '4 vruty do zdi ve výšce ≈ 54,5'],
+    [`Skådis ${s.skadisN}×`, `${fmt(L.skX)} – ${fmt(L.skX + L.skW)}`, `${fmt(L.skY)} – ${fmt(L.skTop)}`, '4 držáky na panel, cca 4 cm od rohů; montuj první'],
+    ['Lack 110', `${fmt(L.lackX)} – ${fmt(L.xDeskEnd)}`, `spodní hrana ${fmt(s.lackY)}`, `osa nosné lišty ≈ ${fmt(s.lackY + 2.5)}; rezerva nad Skådisem ${fmt(s.lackY - L.skTop)} cm`],
+    ['Mittled 60 + 40', `${fmt(L.lackX + 5)} – ${fmt(L.lackX + 105)}`, 'zespodu Lacku', 'blíž k přední hraně, kabel Vågdal vést za Skådisem dolů'],
+    ['Flisat dolní / horní', `${fmt(L.flX)} – ${fmt(L.flX + FL.w)}`, `spodní hrany ${fmt(s.fl1Y)} / ${fmt(s.fl2Y)}`, '2 vruty na kus skrz záda'],
+    ['Ytberg 3×', [...(L.wL ? Array.from({ length: s.kL }, (_, c) => fmt(L.x0 + L.wL * (c + .5) / s.kL)) : []), ...(L.wR ? Array.from({ length: s.kR }, (_, c) => fmt(L.xDeskEnd + L.wR * (c + .5) / s.kR)) : [])].join(' · '), `na Kallaxu (${fmt(KH)})`, 'šroubovat do 3 cm od přední hrany']);
+  el.innerHTML = `<h2>Montážní výkres</h2><p class="lead">Generováno z aktuálního nastavení vizualizace · rozměry v cm · x se měří od levého rohu stěny, výšky od podlahy.</p>
+    <div id="sheetBar"><button class="btn" id="sheetPrint">Vytisknout / PDF</button><button class="btn" id="sheetClose">Zavřít</button></div>
+    <h3>1 · Nárys — rozmístění, kóty a montážní body</h3>${front}
+    <p class="legend"><span style="color:#c0392b;font-weight:700">✕</span> vrtání do zdi / šroubování · <span style="color:#e0a526;font-weight:700">▬</span> LED pásky Mittled 60 + 40 pod Lackem · <b>Y</b> = Ytberg · čárkovaně = dveře, trafa za nábytkem. Přesné rozteče otvorů přeměř na dílech (Skådis, lišta Lacku, Flisat) — výkres určuje polohu a výšku kusů.</p>
+    <h3>2 · Půdorys — hloubky a volně stojící kusy</h3>${plan}
+    <h3>3 · Řez uchycením desky (v mezeře na židli)</h3>${sect}
+    <h3>4 · Schéma světel</h3>${wiring}
+    <p class="legend">Dvě trafa = dva samostatně ovládané okruhy na jedné zásuvce. Pokud by jedno trafo umělo oba okruhy, TRAFO 2 a spojovací Förnimmu vrátíš a Vågdal zapojíš do TRAFA 1.</p>
+    <h3>5 · Montážní body</h3><table><tr><td class="what">Co</td><td class="qty" style="width:150px">x od levého rohu</td><td class="qty" style="width:150px">výška od podlahy</td><td class="note">Poznámka</td></tr>
+    ${rows.map(r => `<tr><td class="what">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="note">${r[3]}</td></tr>`).join('')}</table>
+    <p class="legend">Postup montáže a seznam materiálu jsou v okně „Materiál a nářadí“.</p>`;
+  el.querySelector('#sheetPrint').onclick = () => window.print();
+  el.querySelector('#sheetClose').onclick = () => document.getElementById('sheet').classList.remove('open');
+}
+document.getElementById('btnDrawing').onclick = () => { renderDrawing(); const sh = document.getElementById('sheet'); sh.classList.add('open'); sh.scrollTop = 0; };
+document.getElementById('btnSheet').onclick = () => { renderSheet(); document.getElementById('sheet').classList.add('open'); };
+document.getElementById('sheet').onclick = e => { if (e.target.id === 'sheet') e.target.classList.remove('open'); };
+
+makePanel(); resize(); build(); setView('3d');
+window.__sestava = { S: () => S, layout: () => layout(S) };
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); labelRenderer.render(scene, camera); });
+</script>
+</body>
+</html>
