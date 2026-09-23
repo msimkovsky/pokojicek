@@ -60,6 +60,7 @@
   #sheet .lead { color: var(--muted); margin: 0 0 10px; font-size: 13px; }
   #sheet table { width: 100%; border-collapse: collapse; font-size: 13px; }
   #sheet td { padding: 5px 6px; border-bottom: 1px solid #f0ede6; vertical-align: top; }
+  #sheet h4 { margin: 16px 0 4px; font-size: 14px; }
   #sheet td.what a { color: #1f5f99; text-decoration: none; } #sheet td.what a:hover { text-decoration: underline; } #sheet .art { font-weight: 400; font-size: 11px; color: #888; margin-top: 2px; } #sheet td.note a { color: #1f5f99; }
   #sheet td.cb { width: 24px; } #sheet td.qty { width: 74px; font-weight: 650; white-space: nowrap; } #sheet td.what { width: 38%; font-weight: 550; } #sheet td.note { color: #555; }
   #sheet tr.done td:not(.cb) { opacity: .45; text-decoration: line-through; }
@@ -830,37 +831,35 @@ const WALLS = {
 const hb = (name, art, slug, price) => `<a href="https://www.hornbach.cz/p/${slug}/${art}/" target="_blank" rel="noopener">${name}</a><div class="art">č. ${art} · ${price} Kč</div>`;
 function sheetData(wall) { const L = layout(S), w = WALLS[wall];
   return [
-  { h: 'Nákup HORNBACH Brno — malování', lead: 'Malovat se bude celý pokoj vč. stropu, kolem skříně, stolu a postele. Stěny cca 28 m² + strop 17 m², 2 vrstvy = 90 m². Primalex Plus má podle technického listu vydatnost 10–14 m²/kg → 6,5–9 kg; 17 kg je s rezervou (a stojí jen o 150 Kč víc než 7,5 kg). Váleček, tyč, mřížku, štětec na rohy a stěrku máš.', rows: [
-    ['1 ks', hb('Primalex Plus 15 + 2 kg', 5872386, 'barva-na-zed-primalex-plus-15-kg-2-kg-navic', 668), 'Kbelík není potřeba, mřížka se zavěsí do kbelíku od barvy.'],
-    ['1 ks', hb('Šlehaný lehčený tmel Het 500 ml', 7970326, 'slehany-lehceny-tmel-het-500-ml', 169), 'Díry po hmoždinkách a drobné vady. Po zaschnutí přebrousit.'],
-    ['2 ks', hb('Brusná houba střední/jemná', 3885433, 'houba-brusna-str-jemn-100x75x25-mm', 22), 'Na zatmelená místa, jde i do rohů.'],
-    ['1 arch', hb('Brusný papír F120', 4220125, 'brusny-papir-d-a99-g-bmk-f120', 15), ''],
-    ['1 ks', hb('Malířská páska tesa Perfect+ 19 mm × 50 m', 10515961, 'maskovaci-paska-tesa-masking-tape-perfect-zluta-50-m-x-19-mm', 129), 'Rámy okna, vypínače, lišty skříně.'],
-    ['1 ks', hb('Malířská páska tesa Perfect+ 30 mm × 50 m', 10515949, 'maskovaci-paska-tesa-masking-tape-perfect-zluta-50-m-x-30-mm', 185), 'Podlahové lišty, hrany nábytku, přichycení vliesu.'],
-    ['1 ks', hb('Zakrývací vlies 180 g PROFI 1 × 25 m', 10520210, 'zakryvaci-vlies-180g-profi-1x25m', 659), 'Na podlahu, savý a neklouže. Jde použít znovu.'],
-    ['1 ks', hb('Páska s fólií ROXOLID 140 cm × 25 m', 6822203, 'maskovaci-paska-s-folii-roxolid-140-cm-x-25-m', 199), 'Stůl (135 × 70 × 85), postel (110 × 210 × 90), topení (40 × 200).'],
-    ['1 ks', hb('Páska s fólií ROXOLID 270 cm × 25 m', 5722575, 'maskovaci-paska-s-folii-roxolid-270-cm-x-25m', 219), 'Okno (180 × 240) a čelo skříně (195 × 300).'],
-    ['2 ks', hb('Zakrývací fólie LDPE 30 µm 4 × 5 m', 5693807, 'zakryvaci-folie-ldpe-30my-transparentni-4x5m', 99), 'Plochy nábytku (postel shora, skříň) a rezerva.'],
-    ['1 ks', hb('Odlamovací nůž 18 mm', 8201506, 'univerzalni-odlamovaci-nuz-18-mm', 69), ''],
-    ['1 bal.', hb('Čepele odlamovací 18 mm, 10 ks', 3885360, 'cepel-odlamovaci-18mm-10ks', 58), 'Na řezání fólie měnit často — tupá čepel ji trhá.'],
-    ['1 ks', hb('Malířská kombinéza s kapucí L-XL', 10338017, 'jednorazovy-ochranny-oblek-malirska-kombineza-s-kapuci-bila-velikost-l-xl-60-g', 129), 'Klasické pracovní kalhoty (Ardon) od 819 Kč.'],
-    ['1 ks', hb('Netkaný hadr Söke 60 × 70', 6851384, 'pevny-netkany-hadr-soke-60x70', 29), ''],
-    ['1 bal.', hb('Houbičky Söke, 10 ks', 6858409, 'houba-na-nadobi-soke-tvarovana-10-kusu', 39), 'Kapky barvy hned, dokud jsou mokré.'],
-    ['', '<b>Malování celkem</b>', '<b>≈ 2 810 Kč</b>'] ] },
-  { h: 'Nákup HORNBACH Brno — montáž', lead: `Zeď je pevná (${w.name.toLowerCase()}). Počty jsou dvojnásobné proti potřebě (rezerva), očištěné o to, co máš doma: DuoPower 6 × 30 a 8 × 40 po 15 ks, vruty 4,5 × 40 a 4,0 × 30 po 15 ks — všechno s půlkulatou hlavou.`, rows: [
-    ['1 bal.', hb('Fischer DuoPower 6 × 30, 100 ks', 10185455, 'hmozdinka-fischer-duopower-6x30-mm-100-ks', 159), 'Potřeba 25 (+2 na trafo) → ×2 = 54, doma 15. Balení 100 ks je levnější než menší balení.'],
-    ['1 bal.', hb('Vrut 4,5 × 40 PZ půlkulatá, zinek bílý, 250 ks', 8721770, 'vrut-univerzalni-4-5x40-pz-pulkulata-hlava-zinek-bily-250ks', 218), 'Potřeba 21 (+2) → ×2 = 46, doma 15. Jediné zinkové balení skladem v Brně; alternativa 4× nerez 10 ks (č. 8718465, 38 Kč/bal.).'],
-    ['1 bal.', hb('Vrut 4,5 × 40 TX zápustná hlava, 15 ks', 12187595, 'vrut-univerzalni-4-5x40-tx-zapustena-hlava-castecny-zavit-ponikl-cerny-15ks', 39), 'Jen na Flisat (návod IKEA chce zápustnou hlavu): potřeba 4 → ×2 = 8. Bit TX20/25.'],
-    ['1 bal.', hb('Vrut 4,0 × 30 PZ půlkulatá, 20 ks', 8718174, 'vrut-univerzalni-4-0x30-pz-pulkulata-hlava-brynyr-20ks', 48), 'Deska ↔ Trofasty: potřeba 10 → ×2 = 20. Doma máš 15, s tímhle 35.'],
-    ['1 bal.', hb('Vrut 4,0 × 16 PZ půlkulatá, nerez, 20 ks', 6433847, 'vrut-univerzalni-4-0x16-pz-pulkulata-hlava-nerez-a2-20ks', 34), 'Úhelníky ↔ deska: potřeba 6 → ×2 = 12.'],
-    ['2 bal.', hb('Podložka plochá 4, zinek bílý, 20 ks', 8718494, 'podlozka-plocha-4-pod-nyty-zinek-bily-20ks', 26), 'Pod vruty 4 × 30 a 4 × 16: potřeba 16 → ×2 = 32.'],
-    ['1 bal.', hb('Distanční podložka 5 mm bílá, 20 ks', 770569, 'distancni-podlozka-5-mm-bila-20-ks', 109), 'Za kotvení Kallaxů (stojí 1 cm od zdi kvůli liště): 2 kusy na sebe = 10 mm, 4 body → 8 ks, ×2 = 16. Otvor 8,5 mm, vrut 4,5 projde. Ulička 18.'],
-    ['1 bal.', hb('Vrut 4,5 × 50 PZ půlkulatá, nerez, 10 ks', 6433853, 'vrut-univerzalni-4-5x50-pz-pulkulata-hlava-nerez-a2-10ks', 40), 'Jen na Kallaxy: přes 10 mm podložek + kování by 4,5 × 40 zašel do hmoždinky jen ~28 mm. Potřeba 4 → ×2 = 8.'],
-    ['4 ks', hb('Spojovací úhelník 40 × 40 × 40 bílý', 10610081, 'spojovaci-uhelnik-siroky-40x40x40-mm-bily-plastovy-potah', 26), '3 pod desku v mezeře na židli + 1 rezerva. 2 mm, 4 otvory ⌀ 5 mm → nic se neřeže, pilka ani pilník nejsou potřeba.'],
-    ['2 ks', hb('Kabelová lišta Roth Lange 15 × 10, 2 m, samolepicí', 4685157, 'lista-na-kabely-roth-lange-15x10-mm-2m-samolepici-bila', 49), 'Kabely Ytbergů po boku Kallaxů, Vågdal za Skådisem.'],
-    ['1 bal.', hb('Stahovací pásky SAPI 160 × 2,5 bílé, 100 ks', 8402201, 'stahovaci-paska-sapi-160-x-2-5mm-bila-baleni-100ks', 49), 'Svazky kabelů za Trofastem k trafům.'],
-    ['', '<b>Montáž celkem</b>', '<b>≈ 950 Kč · nákup celkem ≈ 3 760 Kč</b>'],
-    ['místo úhelníků', hb('L-profil perforovaný bílý 35 × 35 × 1,5, 1 m', 6783632, 'l-profil-conceptor-perforovany-bily-35x35x1-5-mm-1m', 129), `Jen pokud chceš souvislý profil (ulička 18): zkrátit na ${fmt(L.chairGap - 1)} cm → navíc ${hb('pilka na kov', 12458174, 'pilka-na-kov-150-mm', 89)} ${hb('pilník, sada 3 ks', 8851077, 'pilnik-na-kov-sada-3-ks', 135)} a ${hb('podložky 5, 20 ks', 8718387, 'podlozka-plocha-5-pod-nyty-zinek-bily-20ks', 31)} — otvory jsou podlouhlé drážky (rozměr neověřen), bez velké podložky vrut proklouzne.`] ] },
+  { h: 'Ještě dokoupit', lead: 'Všechno ostatní je koupené (Hornbach rezervace 23. 9., IKEA objednávky 19. a 20. 9.) — v seznamech níže je to předem odškrtnuté.', rows: [
+    ['1 bal.', hb('Vrut 4,5 × 50 PZ půlkulatá, nerez, 10 ks', 6433853, 'vrut-univerzalni-4-5x50-pz-pulkulata-hlava-nerez-a2-10ks', 40), '<b>Nutné.</b> Jen na 4 kotvení Kallaxů: přes 10 mm distančních podložek + kování by 4,5 × 40 zašel do hmoždinky jen ~28 mm. Hornbach Brno, ulička 18.'],
+    ['volitelně', hb('Kabelová lišta Roth Lange 15 × 10, 2 m, samolepicí', 4685157, 'lista-na-kabely-roth-lange-15x10-mm-2m-samolepici-bila', 49), 'Kabely Ytbergů po boku Kallaxů. Jde to i bez ní — za Kallaxem a stahovacími páskami.'],
+    ['volitelně', hb('Čepele odlamovací 18 mm, 10 ks', 3885360, 'cepel-odlamovaci-18mm-10ks', 58), 'Na řezání fólie — tupá čepel ji trhá.'] ] },
+  { h: 'Koupeno — HORNBACH, malování', lead: 'Rezervace 23. 9. 2026, celkem 4 114 Kč (malování + montáž). Váleček, tyč, mřížku, štětec a stěrku máš. Primalex Polar: vydatnost 7–11 m²/kg → na 90 m² (strop + stěny, 2 vrstvy) 8–13 kg, 17 kg stačí.', rows: [
+    ['1 ks', hb('Primalex Polar 15 + 2 kg', 5897767, 'x', 929), 'Kbelík není potřeba, mřížka se zavěsí do kbelíku od barvy.', 1],
+    ['1 ks', hb('Šlehaný lehčený tmel Het 250 ml', 7970327, 'x', 110), 'Díry po hmoždinkách a drobné vady. Po zaschnutí přebrousit.', 1],
+    ['2 ks', hb('Brusná houba střední/jemná', 3885433, 'houba-brusna-str-jemn-100x75x25-mm', 22), '', 1],
+    ['1 arch', hb('Brusný papír F120', 4220125, 'brusny-papir-d-a99-g-bmk-f120', 15), '', 1],
+    ['1 ks', hb('Malířská páska ROXOLID Fineline 18 mm × 50 m', 5722644, 'x', 99), 'Rámy okna, vypínače, lišty skříně.', 1],
+    ['1 ks', hb('Malířská páska ROXOLID Fineline 30 mm × 50 m', 5722568, 'x', 145), 'Podlahové lišty, hrany nábytku, přichycení vliesu.', 1],
+    ['1 ks', hb('Zakrývací vlies 180 g PROFI 1 × 25 m', 10520210, 'zakryvaci-vlies-180g-profi-1x25m', 659), 'Na podlahu.', 1],
+    ['1 ks', hb('Páska s fólií ROXOLID 140 cm × 25 m', 6822203, 'maskovaci-paska-s-folii-roxolid-140-cm-x-25-m', 199), 'Stůl, postel, topení.', 1],
+    ['1 ks', hb('Páska s fólií ROXOLID 270 cm × 25 m', 5722575, 'maskovaci-paska-s-folii-roxolid-270-cm-x-25m', 219), 'Okno a čelo skříně.', 1],
+    ['2 ks', hb('Zakrývací fólie LDPE 30 µm 4 × 5 m', 5693807, 'zakryvaci-folie-ldpe-30my-transparentni-4x5m', 99), 'Postel shora, skříň, rezerva.', 1],
+    ['1 ks', hb('Odlamovací nůž 18 mm', 8201506, 'univerzalni-odlamovaci-nuz-18-mm', 69), '', 1],
+    ['1 ks', hb('Pracovní kalhoty Ardon COOL TREND, vel. 58', 10314828, 'x', 529), '', 1],
+    ['4 ks', hb('Netkaný hadr Söke 60 × 70', 6851384, 'pevny-netkany-hadr-soke-60x70', 29), '', 1],
+    ['1 bal.', hb('Houbička Vileda Rainbow 9 + 1 ks', 5602041, 'x', 30), 'Kapky barvy hned, dokud jsou mokré.', 1] ] },
+  { h: 'Koupeno — HORNBACH, montáž', lead: 'Doma máš navíc DuoPower 6 × 30 a 8 × 40 po 15 ks a vruty 4,5 × 40 a 4,0 × 30 po 15 ks (všechny s půlkulatou hlavou).', rows: [
+    ['1 bal.', hb('Fischer DuoPower 6 × 30, 100 ks', 10185455, 'hmozdinka-fischer-duopower-6x30-mm-100-ks', 159), 'Potřeba 27 ks do zdi.', 1],
+    ['1 bal.', hb('Vrut 4,5 × 40 PZ půlkulatá, zinek bílý, 250 ks', 8721770, 'vrut-univerzalni-4-5x40-pz-pulkulata-hlava-zinek-bily-250ks', 218), 'Úhelníky, Lack, Skådis (+ trafo).', 1],
+    ['1 bal.', hb('Vrut 4,5 × 40 PZ zápustná, zinek bílý, 15 ks', 8718379, 'x', 28), 'Jen Flisat (4 ks).', 1],
+    ['1 bal.', hb('Vrut 4,0 × 30 PZ půlkulatá, nerez, 15 ks', 6433849, 'vrut-univerzalni-4-0x30-pz-pulkulata-hlava-nerez-a2-15ks', 36), 'Deska ↔ Trofasty (10 ks), s domácími 30 ks.', 1],
+    ['1 bal.', hb('Vrut 4,0 × 16 PZ půlkulatá, nerez, 20 ks', 6433847, 'vrut-univerzalni-4-0x16-pz-pulkulata-hlava-nerez-a2-20ks', 34), 'Úhelníky ↔ deska (6 ks).', 1],
+    ['1 bal.', hb('Podložka plochá 4, zinek bílý, 20 ks', 8718494, 'podlozka-plocha-4-pod-nyty-zinek-bily-20ks', 26), 'Pod vruty 4 × 30 a 4 × 16 (16 ks).', 1],
+    ['3 ks', hb('Spojovací úhelník 40 × 40 × 40 bílý', 10610081, 'spojovaci-uhelnik-siroky-40x40x40-mm-bily-plastovy-potah', 26), 'Pod desku v mezeře na židli.', 1],
+    ['1 bal.', hb('Sada distančních podložek 5/10/20/30 mm bílá, 20 ks', 770627, 'x', 149), 'Za kotvení Kallaxů: 4× 10 mm (nebo 2× 5 mm na bod). Po otevření spočítej.', 1],
+    ['1 bal.', hb('Stahovací pásky SAPI 100 × 2,5 bílé, 100 ks', 4065975, 'x', 25), 'Kabely světel.', 1] ] },
   { h: 'Rozpis montáže: do zdi — nic nekupuješ, je to v nákupu výše', lead: `Tady je jen, kam který vrut přijde (podle montážních návodů IKEA). Vruty a hmoždinky jsou už započítané v nákupu „montáž“ i s rezervou. ${w.fix}. ${w.drill}. IKEA vruty ani hmoždinky do zdi nepřibaluje k žádnému z produktů.`, rows: [
     ['4 ks', 'Kallax 2×4 a 1×4 — kotvení proti převržení', 'Kování je v balení (2×4: 2 sady, 1×4: 3 sady, použij 2). 2 vruty na skříň, půlkulatá hlava (zápustná je v návodu přeškrtnutá). Nábytek stojí 1 cm od zdi kvůli liště → mezi zeď a kování 2 distanční podložky 5 mm a delší vrut 4,5 × 50.'],
     ['6 ks', '3× úhelník pod zadní hranu desky', 'Po 2 vrutech do zdi. Jen v mezeře na židli, nad Trofasty se nevejde.'],
@@ -874,27 +873,28 @@ function sheetData(wall) { const L = layout(S), w = WALLS[wall];
     ['6 ks', 'Deska ↔ úhelníky: vrut 4 × 16 + podložka', 'Zespodu skrz úhelník do desky, předvrtat 2,5 mm.'],
     ['✓ v balení', 'Ytberg 3×: 2 vruty + konzola + páska', 'Šroubuj do 3 cm od přední hrany Kallaxu — tam je plný rám, dál je voština. Páska drží jen na skle a kovu a nejde sundat.'],
     ['✓ v balení', 'Mittled: 2 vruty, Torx bit, klipy', 'Papírovou vrtací šablonu vystřihni z krabice (nůžky).'] ] },
-  { h: 'IKEA — stav objednávky', lead: 'Objednávka z 19. 9. 2026 + doobjednávka z téhož večera (VÅGDAL, druhé trafo DUBBELKISEL, spojovací FÖRNIMMA 2 m) — obojí koupené, z IKEA nic nechybí.', rows: [
-    ['✓ máš doma', 'LACK nástěnná police 110 × 26 bílá', 'Zkontroluj, že máš i skrytou nosnou lištu a 2 šroubky, a že police není prohnutá.'],
-    ['✓ koupeno', 'VÅGDAL 3,5 m + 2. trafo DUBBELKISEL + FÖRNIMMA spojovací 2 m', 'Trafo 1 = 3× Ytberg, trafo 2 = Mittled pod Lackem přes Vågdal, obě na jedné zásuvce. Pokud se po spárování ukáže, že jedno trafo zvládne dva okruhy, druhé vrátíš.'],
-    ['✓ máš', 'Baterie 4× AA (Nödmast) + 2× AAA (Bilresa)', 'Nejsou v balení. Nödmast svítí na baterie; USB-C slouží jen k nabíjení dobíjecích NiMH (LADDA) přímo v lampě — alkalické baterie přes USB nenabíjej.'],
-    ['✓ máš', 'Thread Border Router: DIRIGERA + HomePody', 'Dubbelkisel i Bilresa jsou Matter over Thread. Párování: ovladač max. 5 cm od trafa.'] ] },
+  { h: 'IKEA — stav objednávky', lead: 'Objednávka 19. 9. 2026 + doobjednávka 20. 9. (VÅGDAL, druhé trafo DUBBELKISEL, spojovací FÖRNIMMA 2 m, krabice na kabely SÄTTING) — z IKEA nic nechybí.', rows: [
+    ['✓ máš doma', 'LACK nástěnná police 110 × 26 bílá', 'Zkontroluj, že máš i skrytou nosnou lištu a 2 šroubky, a že police není prohnutá.', 1],
+    ['✓ koupeno', 'VÅGDAL 3,5 m + 2. trafo DUBBELKISEL + FÖRNIMMA spojovací 2 m', 'Trafo 1 = 3× Ytberg, trafo 2 = Mittled pod Lackem přes Vågdal, obě na jedné zásuvce. Pokud se po spárování ukáže, že jedno trafo zvládne dva okruhy, druhé vrátíš.', 1],
+    ['✓ máš', 'Baterie 4× AA (Nödmast) + 2× AAA (Bilresa)', 'Nejsou v balení. Nödmast svítí na baterie; USB-C slouží jen k nabíjení dobíjecích NiMH (LADDA) přímo v lampě — alkalické baterie přes USB nenabíjej.', 1],
+    ['✓ koupeno', 'SÄTTING krabice na kabely', 'Zásuvková lišta + obě trafa za velký Trofast — kabely pohromadě, zásuvky mimo dosah.', 1],
+    ['✓ máš', 'Thread Border Router: DIRIGERA + HomePody', 'Dubbelkisel i Bilresa jsou Matter over Thread. Párování: ovladač max. 5 cm od trafa.', 1] ] },
   { h: 'Další materiál (máš / seženeš doma)', rows: [
     ['1 ks', 'Bílý akrylový tmel', 'Spára deska–zeď, ať za desku nepadají pastelky. Akryl, ne silikon.'],
     ['1 sada', 'Vyrovnávací klínky + plstěné podložky pod nábytek', 'Oba Trofasty musí být ve stejné výšce, jinak se deska kolébá.'],
     ['1 ks', 'Zásuvková lišta 3–4 zásuvky s vypínačem', 'Trafa světel, Lersta, nabíječka Nödmastu.'],
     ['1 ks', 'Žárovka E27 LED do Lersty', 'Pokud v ní už není.'] ] },
   { h: 'Nářadí — podle piktogramů v návodech IKEA', lead: 'Všechno máš doma.', rows: [
-    ['✓', 'Křížový + plochý šroubovák', 'Křížový u všeho, plochý: Kallaxy, vložky se zásuvkami, Skådis, Flisat, Dubbelkisel, Bilresa. Imbus je v balení Kallaxů, Trofastů a Flisatu. U Flisatu je aku-šroubovák v návodu přeškrtnutý.'],
-    ['✓', 'Kladivo', 'Kallax 2×4 a vložky se zásuvkami (kolíky).'],
-    ['✓', 'Vodováha, metr, tužka, nůžky', 'Nůžky na šablonu Mittledu.'],
-    ['✓', 'Vrtačka s příklepem, vrták do zdi 6 mm, vrtáky do dřeva 2,5 a 4,5 mm', 'Trofast 4,5 průchozí, deska a úhelníky 2,5 předvrtat. Krátký bit / úhlový nástavec — uvnitř Trofastu je na výšku jen ~50 cm.'],
-    ['✓', 'Svěrky 2×', 'Drží desku při šroubování.'],
+    ['✓ máš', 'Křížový + plochý šroubovák', 'Křížový u všeho, plochý: Kallaxy, vložky se zásuvkami, Skådis, Flisat, Dubbelkisel, Bilresa. Imbus je v balení Kallaxů, Trofastů a Flisatu. U Flisatu je aku-šroubovák v návodu přeškrtnutý.', 1],
+    ['✓ máš', 'Kladivo', 'Kallax 2×4 a vložky se zásuvkami (kolíky).', 1],
+    ['✓ máš', 'Vodováha, metr, tužka, nůžky', 'Nůžky na šablonu Mittledu.', 1],
+    ['✓ máš', 'Vrtačka s příklepem, vrták do zdi 6 mm, vrtáky do dřeva 2,5 a 4,5 mm', 'Trofast 4,5 průchozí, deska a úhelníky 2,5 předvrtat. Krátký bit / úhlový nástavec — uvnitř Trofastu je na výšku jen ~50 cm.', 1],
+    ['✓ máš', 'Svěrky 2×', 'Drží desku při šroubování.', 1],
     ['', 'Detektor kabelů (pokud máš)', 'Vedení jde svisle nad a pod zásuvkami a vodorovně u stropu.'] ] } ];
 }
 function sheetFlags() { const L = layout(S), door = doorLimit(S, L), f = [];
   f.push(`<b>Deska je uříznutá ${fmt(S.deskLen)} × ${fmt(S.deskDepth)} cm</b> → mezera na židli ${fmt(L.chairGap)} cm, vpravo ke zdi ${fmt(L.rightFree)} cm.`);
-  f.push('<b>Nejdřív vymalovat</b> a nechat proschnout (Primalex cca 2 h mezi vrstvami, před montáží ideálně přes noc). Díry pro montáž vrtat až po malování.');
+  f.push('<b>Nejdřív vymalovat</b>, vrtat až druhý den — rozpis po dnech je dole v „Postup na víkend“.');
   f.push('<b>Kallax — zásuvky nesmí do buňky s kováním proti převržení</b> (horní přihrádky). Tvoje konfigurace je v pořádku: zásuvky jsou ve 2. řadě zdola.');
   f.push('<b>Kde jsou zásuvky?</b> Nesmí skončit za zásuvkami nebo košem Kallaxu. Volná přihrádka nevadí (Kallax nemá záda).');
   f.push(`<b>Pořadí nad deskou:</b> nejdřív Skådis, potom Lack podle něj — rezerva je jen ${fmt(S.lackY - L.skTop)} cm.`);
@@ -902,11 +902,12 @@ function sheetFlags() { const L = layout(S), door = doorLimit(S, L), f = [];
   if (door.deg < 88) f.push(`<b>Dveře se otevřou na ${fmt(door.deg)}°</b> (brání ${door.by}).`);
   return f;
 }
-let sheetState = {}; try { sheetState = JSON.parse(localStorage.getItem(STORE + '-sheet3') || '{}'); } catch (e) {}
+let sheetState = {}; try { sheetState = JSON.parse(localStorage.getItem(STORE + '-sheet4') || '{}'); } catch (e) {}
 function renderSheet() {
   const wall = 'plna', el = document.getElementById('sheetInner');
   const secs = sheetData(wall).map((sec, si) => `<h3>${sec.h}</h3>${sec.lead ? `<p class="lead">${sec.lead}</p>` : ''}<table>${sec.rows.map((r, ri) => { const id = `c${si}_${ri}`;
-    return `<tr class="${sheetState[id] ? 'done' : ''}"><td class="cb"><input type="checkbox" data-id="${id}" ${sheetState[id] ? 'checked' : ''}></td><td class="qty">${r[0]}</td><td class="what">${r[1]}</td><td class="note">${r[2]}</td></tr>`; }).join('')}</table>`).join('');
+    const on = id in sheetState ? sheetState[id] : !!r[3];
+    return `<tr class="${on ? 'done' : ''}"><td class="cb"><input type="checkbox" data-id="${id}" ${on ? 'checked' : ''}></td><td class="qty">${r[0]}</td><td class="what">${r[1]}</td><td class="note">${r[2]}</td></tr>`; }).join('')}</table>`).join('');
   el.innerHTML = `<h2>Materiál, nářadí a postup</h2><p class="lead">Počty sedí na aktuální nastavení vizualizace. Zaškrtnutí se pamatuje v tomto prohlížeči.</p>
     <div id="sheetBar"><button class="btn" id="sheetPrint">Vytisknout / PDF</button><button class="btn" id="sheetClose">Zavřít</button></div>
     <h3>Než začneš — co ověřit a rozhodnout</h3>${sheetFlags().map(t => `<div class="flag">${t}</div>`).join('')}
@@ -921,13 +922,38 @@ function renderSheet() {
     <li>Zašroubuj vruty s podložkami. Dotahuj ručně nebo na nízkou spojku — dřevotříska se snadno strhne a vrut se pak protáčí.</li>
     </ol>
     <p class="legend">Krabice z Trofastu vyndej, uvnitř je pak cca 30 × 50 cm místa.</p>
-    <h3>Doporučený postup</h3><ol>
-    <li>Vyklidit, zakrýt (vlies na podlahu, páska s fólií na stůl, postel, topení, okno a skříň), zatmelit díry, přebrousit.</li><li>Vymalovat strop, pak stěny, 2 vrstvy. Pásky strhnout, dokud je barva vlhká. Nechat proschnout.</li><li>Projet stěnu detektorem, označit páskou zásuvky a vedení.</li>
-    <li>Složit Kallaxy a Trofasty, postavit na místo, vyrovnat klínky (Trofasty do stejné výšky).</li><li>Ukotvit oba Kallaxy ke zdi přes distanční podložky.</li>
-    <li>Položit desku na Trofasty, dorazit ke zdi, svěrkami přitáhnout, přišroubovat zevnitř Trofastů.</li><li>3 úhelníky přiložit zespodu k desce a ke zdi (horní hrana 56 cm), označit díry, odvrtat, přišroubovat do zdi a pak 4 × 16 do desky.</li>
-    <li>Skådis 3× (spodní hrana ${fmt(layout(S).skY)} cm od podlahy) → Lack nad něj → LED lišta pod Lack.</li><li>Flisaty (spodní hrany ${fmt(S.fl1Y)} a ${fmt(S.fl2Y)} cm), Ytbergy na Kallaxy, kabely do lišt, trafo za Trofast.</li>
-    <li>Akryl do spáry u zdi, vložky a koše do Kallaxů, doplňky na Skådis.</li></ol>`;
-  const persist = () => { try { localStorage.setItem(STORE + '-sheet3', JSON.stringify(sheetState)); } catch (e) {} };
+    <h3>Postup na víkend — malování i montáž</h3>
+    <p class="lead">Klíčová myšlenka: nábytek z IKEA se skládá v jiné místnosti, zatímco v pokoji schne barva. Do zdi se vrtá až po malování, jinak by se díry zamazávaly a prach lepil do čerstvé barvy. Časy schnutí ověř na kbelíku Polaru — níže je počítáno s obvyklými ~2–4 h mezi vrstvami.</p>
+    <h4>Pátek večer — příprava (cca 2 h)</h4><ol>
+    <li>Vynést vše pohyblivé (křeslo, bazének, hračky, koberec). Sundat obrázky a police, vytáhnout staré hmoždinky, které nebudou potřeba.</li>
+    <li>Vypnout a nechat vychladnout sálavý panel.</li>
+    <li>Vysát podlahu a zamést pavučiny u stropu — prach pod vliesem i na stěně kazí nátěr.</li>
+    <li><b>Zatmelit díry</b> šlehaným tmelem, lehce přes okraj. Přes noc bezpečně zaschne i v hlubších dírách.</li></ol>
+    <h4>Sobota — malování (celý den)</h4><ol>
+    <li><b>Ráno (1 h):</b> přebrousit tmel houbičkou, setřít prach vlhkým hadrem.</li>
+    <li><b>Zakrýt (1–1,5 h):</b> vlies na podlahu (přilepit k lištám 30mm páskou), páska s fólií 140 cm na stůl, postel a topení, 270 cm na okno a čelo skříně, 18mm páska na rámy okna a dveří, vypínače a zásuvky (nebo sundat rámečky při vypnutém jističi).</li>
+    <li><b>1. vrstva (2–2,5 h):</b> nejdřív <b>strop</b> — štětcem obtáhnout kouty a styk se stěnou, pak válečkem v pruzích od okna. Pak <b>stěny</b> — štětcem rohy, kolem skříně, stolu, postele a okna, pak válcem shora dolů „mokré do mokrého“, jednu stěnu vždy dotáhnout celou.</li>
+    <li><b>Pauza 3–4 h — skládat nábytek v obýváku:</b> Kallax 2×4 a 1×4 (kladivo na kolíky), vložky se zásuvkami a s policí, oba rámy Trofast. Trofasty můžeš rovnou provrtat nahoře 4,5 mm (viz detail výše). Pokoj větrat mírně, bez průvanu.</li>
+    <li><b>2. vrstva (2 h):</b> stejné pořadí, strop → stěny. Válec a štětec mezi vrstvami zabalit do igelitu, nemusíš mýt.</li>
+    <li><b>Hned po 2. vrstvě:</b> strhnout malířské pásky pod úhlem 45°, dokud je barva vlhká — nevznikne otrhaná hrana. Fólie na nábytku a vlies nechat do neděle.</li>
+    <li>Večer umýt váleček a štětec, větrat a nechat přes noc schnout.</li></ol>
+    <h4>Neděle dopoledne — kontrola a úklid (1–2 h)</h4><ol>
+    <li>Za denního světla projít stěny z boku — místa bez krytí nebo s pruhy dotřít štětcem / malým válečkem.</li>
+    <li>Po zaschnutí retuší sundat fólie z nábytku a okna (nožem podél pásky), vlies smotat nečistou stranou dovnitř (dá se použít znovu). Kapky na podlaze houbičkou.</li>
+    <li>Pustit topení, vrátit rámečky vypínačů.</li></ol>
+    <h4>Neděle odpoledne — montáž (4–5 h)</h4>
+    <p class="lead">Barva je po ~24 h suchá na vrtání a přistavení nábytku, plně vytvrdne za 2–3 týdny — do té doby na stěnu nelepit pásky a nedrhnout ji.</p><ol>
+    <li>Projet stěnu detektorem, označit zásuvky a vedení tužkou (ne páskou — na čerstvé barvě by mohla strhnout nátěr).</li>
+    <li>Postavit Kallaxy a Trofasty na místo, vyrovnat klínky (Trofasty do stejné výšky), zkontrolovat vodováhou.</li>
+    <li>Ukotvit oba Kallaxy: vrut 4,5 × 50 + DuoPower 6 × 30, mezi zeď a kování distanční podložka 10 mm.</li>
+    <li>Položit desku, dorazit ke zdi, svěrkami přitáhnout, zevnitř Trofastů 10× vrut 4 × 30 + podložka.</li>
+    <li>3 úhelníky pod zadní hranu desky v mezeře na židli: do zdi 4,5 × 40, do desky 4 × 16 + podložka.</li>
+    <li>Skådis 3× (spodní hrana ${fmt(layout(S).skY)} cm od podlahy), pak Lack nad něj (5 vrutů), pak Mittled pod Lack.</li>
+    <li>Flisaty (spodní hrany ${fmt(S.fl1Y)} a ${fmt(S.fl2Y)} cm) — vruty se zápustnou hlavou. Ytbergy nahoru na Kallaxy.</li>
+    <li>Kabely: Ytbergy za Kallaxy dolů, Vågdal za Skådisem, vše stáhnout páskami; zásuvková lišta + obě trafa do krabice SÄTTING za velký Trofast.</li>
+    <li>Spárovat trafa a ovladač Bilresa (max. 5 cm od trafa), ověřit v aplikaci, jestli jedno trafo neumí dva okruhy.</li>
+    <li>Vložky, koše a krabice do Kallaxů a Trofastů, doplňky na Skådis. Vysát prach z vrtání. Akryl do spáry deska–zeď klidně až další víkend.</li></ol>`;
+  const persist = () => { try { localStorage.setItem(STORE + '-sheet4', JSON.stringify(sheetState)); } catch (e) {} };
   el.querySelectorAll('input[type=checkbox]').forEach(c => c.onchange = () => { sheetState[c.dataset.id] = c.checked; c.closest('tr').classList.toggle('done', c.checked); persist(); });
   el.querySelector('#sheetPrint').onclick = () => window.print();
   el.querySelector('#sheetClose').onclick = () => document.getElementById('sheet').classList.remove('open');
